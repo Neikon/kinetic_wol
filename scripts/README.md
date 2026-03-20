@@ -26,3 +26,9 @@ python3 scripts/listen_wol.py --port 4009 --once
 ```
 
 Para escucha continua, sal con `Ctrl+C`.
+
+Si tu terminal escribe secuencias raras como `^[[99;5u` al pulsar `Ctrl+C`, se ha quedado activo un modo de teclado extendido. Puedes restaurarlo con:
+
+```bash
+printf '\e[<u'
+```

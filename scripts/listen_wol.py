@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import atexit
 import binascii
 import signal
 import socket
@@ -17,6 +18,7 @@ MAC_BYTES = 6
 PREAMBLE = b"\xff" * MAC_BYTES
 EXPECTED_PACKET_SIZE = 6 + (16 * MAC_BYTES)
 POLL_INTERVAL_SECONDS = 0.5
+DISABLE_KITTY_KEYBOARD_PROTOCOL = "\x1b[<u"
 
 
 @dataclass(frozen=True)
@@ -98,7 +100,17 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def disable_extended_keyboard_protocol() -> None:
+    if not sys.stdout.isatty():
+        return
+    sys.stdout.write(DISABLE_KITTY_KEYBOARD_PROTOCOL)
+    sys.stdout.flush()
+
+
 def main() -> int:
+    disable_extended_keyboard_protocol()
+    atexit.register(disable_extended_keyboard_protocol)
+
     args = build_parser().parse_args()
 
     if not (1 <= args.port <= 65535):
