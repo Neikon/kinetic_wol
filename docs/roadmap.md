@@ -22,7 +22,7 @@
 - Añadidos recursos bilingües base
 - Añadidos tests unitarios iniciales
 - Rama publicada en remoto y pull request abierto
-
+ 
 ## En curso
 
 - Revisar y endurecer la base Android hasta primera build real
