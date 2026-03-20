@@ -48,3 +48,9 @@
 - `WakeDeviceActivity` headless para fulfillment
 - `shortcuts.xml` con capacidad de App Actions basada en custom intent
 - Tests unitarios básicos para WOL y normalización
+- Android Studio actualizó la toolchain del proyecto a AGP `9.1.0`, Gradle `9.3.1` y daemon JVM `21`
+
+## Notas de build actuales
+
+- Android Studio ha generado ajustes de compatibilidad en `gradle.properties`
+- Esos flags producen warnings deprecados en build, pero de momento se mantienen para priorizar que el proyecto compile

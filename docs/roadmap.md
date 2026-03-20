@@ -22,6 +22,7 @@
 - Añadidos recursos bilingües base
 - Añadidos tests unitarios iniciales
 - Rama publicada en remoto y pull request abierto
+- Android Studio actualizó AGP, Gradle wrapper y configuración de daemon JVM para la build local
  
 ## En curso
 
