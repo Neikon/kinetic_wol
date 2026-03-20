@@ -3,6 +3,7 @@ package dev.neikon.kineticwol.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import dev.neikon.kineticwol.actions.DeviceShortcutPublisher
 import dev.neikon.kineticwol.AppContainer
 import dev.neikon.kineticwol.R
 import dev.neikon.kineticwol.domain.model.WakeDevice
@@ -23,6 +24,7 @@ import kotlinx.coroutines.launch
 class HomeViewModel(
     private val repository: DeviceRepository,
     private val wakeOnLanSender: WakeOnLanSender,
+    private val deviceShortcutPublisher: DeviceShortcutPublisher,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
@@ -33,6 +35,7 @@ class HomeViewModel(
     init {
         viewModelScope.launch {
             repository.observeDevices().collect { devices ->
+                deviceShortcutPublisher.sync(devices)
                 _uiState.update { state -> state.copy(devices = devices) }
             }
         }
@@ -106,6 +109,7 @@ class HomeViewModel(
 
         viewModelScope.launch {
             repository.delete(deviceId)
+            deviceShortcutPublisher.remove(deviceId)
             log(UiMessage(R.string.log_deleted_device, listOf(draft.name)))
             _messages.emit(UiMessage(R.string.delete_success))
             dismissEditor()
@@ -117,6 +121,7 @@ class HomeViewModel(
             runCatching {
                 wakeOnLanSender.send(device)
             }.onSuccess {
+                deviceShortcutPublisher.reportUsed(device.id)
                 log(UiMessage(R.string.manual_wake_success, listOf(device.name)))
                 _messages.emit(UiMessage(R.string.manual_wake_success, listOf(device.name)))
             }.onFailure {
@@ -168,6 +173,7 @@ class HomeViewModel(
                     HomeViewModel(
                         repository = appContainer.deviceRepository,
                         wakeOnLanSender = appContainer.wakeOnLanSender,
+                        deviceShortcutPublisher = appContainer.deviceShortcutPublisher,
                     ) as T
             }
     }

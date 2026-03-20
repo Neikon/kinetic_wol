@@ -24,18 +24,17 @@
 - Rama publicada en remoto y pull request abierto
 - Android Studio actualizó AGP, Gradle wrapper y configuración de daemon JVM para la build local
 - Añadido script Python para escuchar magic packets WOL en local
- 
+- Integrada publicación de shortcuts dinámicos para equipos guardados
+
 ## En curso
 
-- Revisar y endurecer la base Android hasta primera build real
+- Revisar y endurecer App Actions sobre la base ya validada
 
 ## Pendiente inmediato
 
-- abrir el proyecto en Android Studio con toolchain Android moderna
-- generar o completar el Gradle wrapper real si hiciera falta
-- compilar y corregir errores de integración que solo salgan en build
 - validar envío WOL en dispositivo real y red local
 - validar App Actions desde Android Studio App Actions Test Tool
+- comprobar que los shortcuts dinámicos aparecen en Assistant Shortcuts
 - decidir si se añade historial persistente de eventos
 
 ## Riesgos abiertos

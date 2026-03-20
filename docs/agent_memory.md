@@ -47,6 +47,7 @@
 - `WakeOnLanSender` con normalización MAC y magic packet
 - `WakeDeviceActivity` headless para fulfillment
 - `shortcuts.xml` con capacidad de App Actions basada en custom intent
+- publicación de shortcuts dinámicos por dispositivo para Assistant/Gemini
 - Tests unitarios básicos para WOL y normalización
 - Android Studio actualizó la toolchain del proyecto a AGP `9.1.0`, Gradle `9.3.1` y daemon JVM `21`
 

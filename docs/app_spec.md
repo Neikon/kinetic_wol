@@ -45,6 +45,7 @@ La app debe incluir:
 - `meta-data` en manifest para shortcuts
 - una `WakeDeviceActivity` headless exportada
 - extracción tolerante de parámetro de dispositivo
+- publicación de shortcuts dinámicos para equipos guardados
 
 Estado deseado:
 

@@ -44,6 +44,7 @@
     <string name="delete_success">Device deleted.</string>
     <string name="log_saved_device">Device saved: %1$s.</string>
     <string name="log_deleted_device">Device deleted: %1$s.</string>
+    <string name="shortcut_wake_device_long_label">Wake %1$s</string>
     <string name="device_not_found">Requested device was not found.</string>
     <string name="missing_device_name">Missing device name in the intent.</string>
     <string name="app_actions_limit_note">Note: current voice action support depends on official App Actions limitations and needs validation on a real device.</string>

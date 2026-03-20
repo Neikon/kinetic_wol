@@ -32,6 +32,7 @@ class WakeDeviceActivity : ComponentActivity() {
                 } else {
                     Log.i(TAG, "Sending WOL packet for device: ${device.name}")
                     appContainer.wakeOnLanSender.send(device)
+                    appContainer.deviceShortcutPublisher.reportUsed(device.id)
                     setResult(Activity.RESULT_OK)
                 }
             }.onFailure { throwable ->
