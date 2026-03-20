@@ -129,11 +129,11 @@ private fun KineticWolScaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
     ) { innerPadding ->
         Crossfade(
-            targetState = uiState.editor,
+            targetState = uiState.editor != null,
             modifier = Modifier.fillMaxSize(),
             label = "kinetic-wol-screen",
-        ) { editor ->
-            if (editor == null) {
+        ) { isEditing ->
+            if (!isEditing) {
                 DashboardContent(
                     uiState = uiState,
                     onAddDevice = onAddDevice,
@@ -142,6 +142,7 @@ private fun KineticWolScaffold(
                     modifier = Modifier.padding(innerPadding),
                 )
             } else {
+                val editor = uiState.editor ?: return@Crossfade
                 DeviceEditorContent(
                     draft = editor,
                     validationErrors = uiState.validationErrors,
