@@ -106,9 +106,49 @@ def main() -> int:
     if expected_mac:
         print(f"Filtrando por MAC objetivo: {format_mac(expected_mac)}")
 
-    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    except PermissionError:
+        print(
+            "error: el sistema ha denegado la creacion del socket UDP.",
+            file=sys.stderr,
+        )
+        print(
+            "Prueba a ejecutar fuera de un sandbox restrictivo o usa tu terminal normal.",
+            file=sys.stderr,
+        )
+        return 13
+
+    with sock:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        sock.bind((args.host, args.port))
+        try:
+            sock.bind((args.host, args.port))
+        except PermissionError:
+            print(
+                "error: no tienes permisos para escuchar en ese puerto.",
+                file=sys.stderr,
+            )
+            print(
+                "En Linux, los puertos inferiores a 1024 requieren privilegios.",
+                file=sys.stderr,
+            )
+            print(
+                "Opciones recomendadas:",
+                file=sys.stderr,
+            )
+            print(
+                f"- usar un puerto alto, por ejemplo: python3 scripts/listen_wol.py --port 4009",
+                file=sys.stderr,
+            )
+            print(
+                "- configurar ese mismo puerto en el dispositivo dentro de la app",
+                file=sys.stderr,
+            )
+            print(
+                "- o ejecutar el script con privilegios si de verdad necesitas el puerto 9",
+                file=sys.stderr,
+            )
+            return 13
         if args.timeout is not None:
             sock.settimeout(args.timeout)
 
