@@ -16,7 +16,7 @@ data class EventLog(
 )
 
 data class UiMessage(
-    @StringRes val resId: Int,
+    @param:StringRes val resId: Int,
     val formatArgs: List<Any> = emptyList(),
 )
 
