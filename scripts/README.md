@@ -24,3 +24,5 @@ Ejemplo recomendado de prueba local:
 ```bash
 python3 scripts/listen_wol.py --port 4009 --once
 ```
+
+Para escucha continua, sal con `Ctrl+C`.

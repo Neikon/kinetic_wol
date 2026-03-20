@@ -5,15 +5,18 @@ from __future__ import annotations
 
 import argparse
 import binascii
+import signal
 import socket
 import sys
 from dataclasses import dataclass
 from datetime import datetime
+from time import monotonic
 
 
 MAC_BYTES = 6
 PREAMBLE = b"\xff" * MAC_BYTES
 EXPECTED_PACKET_SIZE = 6 + (16 * MAC_BYTES)
+POLL_INTERVAL_SECONDS = 0.5
 
 
 @dataclass(frozen=True)
@@ -106,6 +109,15 @@ def main() -> int:
     if expected_mac:
         print(f"Filtrando por MAC objetivo: {format_mac(expected_mac)}")
 
+    stop_requested = False
+
+    def handle_stop(_signum: int, _frame: object) -> None:
+        nonlocal stop_requested
+        stop_requested = True
+
+    signal.signal(signal.SIGINT, handle_stop)
+    signal.signal(signal.SIGTERM, handle_stop)
+
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     except PermissionError:
@@ -150,19 +162,30 @@ def main() -> int:
             )
             return 13
         if args.timeout is not None:
-            sock.settimeout(args.timeout)
+            deadline = monotonic() + args.timeout
+        else:
+            deadline = None
 
         print(f"Escuchando UDP en {args.host}:{args.port}")
 
         while True:
-            try:
-                data, sender = sock.recvfrom(4096)
-            except TimeoutError:
-                print("Tiempo de espera agotado sin recibir magic packets validos.")
-                return 1
-            except KeyboardInterrupt:
+            if stop_requested:
                 print("\nInterrumpido por el usuario.")
                 return 130
+
+            if deadline is not None:
+                remaining = deadline - monotonic()
+                if remaining <= 0:
+                    print("Tiempo de espera agotado sin recibir magic packets validos.")
+                    return 1
+                sock.settimeout(min(POLL_INTERVAL_SECONDS, remaining))
+            else:
+                sock.settimeout(POLL_INTERVAL_SECONDS)
+
+            try:
+                data, sender = sock.recvfrom(4096)
+            except socket.timeout:
+                continue
 
             packet = extract_magic_packet(data, sender)
             if packet is None:
