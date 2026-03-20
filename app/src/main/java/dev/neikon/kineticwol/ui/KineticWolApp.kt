@@ -21,6 +21,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -84,6 +85,7 @@ fun KineticWolApp(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun KineticWolScaffold(
     uiState: HomeUiState,
