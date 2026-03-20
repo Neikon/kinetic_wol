@@ -1,0 +1,5 @@
+{
+  "name": "Kinetic WOL",
+  "description": "A high-performance Wake-on-LAN (WOL) dashboard for managing network infrastructure with voice command integration.",
+  "requestFramePermissions": []
+}
