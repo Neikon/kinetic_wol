@@ -1,0 +1,57 @@
+<resources>
+    <string name="app_name">Kinetic WOL</string>
+    <string name="hero_overline">Wake-on-LAN</string>
+    <string name="hero_title">Wake your devices from Android</string>
+    <string name="hero_body">Manage devices, send real magic packets, and prepare a voice invocation flow without requiring manual navigation.</string>
+    <string name="summary_devices">%1$d devices</string>
+    <string name="summary_logs">%1$d recent events</string>
+    <string name="add_device">Add device</string>
+    <string name="edit_device">Edit device</string>
+    <string name="register_device">Register device</string>
+    <string name="save">Save</string>
+    <string name="delete">Delete</string>
+    <string name="cancel">Cancel</string>
+    <string name="wake">Wake</string>
+    <string name="voice_section_title">Voice invocation</string>
+    <string name="voice_section_body">The app includes a headless fulfillment that resolves a device by name and sends Wake-on-LAN without manual navigation.</string>
+    <string name="voice_status_title">App Actions status</string>
+    <string name="voice_status_body">The implementation uses the current official App Actions infrastructure. Final validation must happen in Android Studio and on a real device.</string>
+    <string name="voice_example">\"Wake my Gaming PC with Kinetic WOL\"</string>
+    <string name="logs_title">Recent activity</string>
+    <string name="logs_empty">No activity yet in this session.</string>
+    <string name="empty_title">No devices yet</string>
+    <string name="empty_body">Add your first machine to start sending Wake-on-LAN packets from the app or through voice fulfillment.</string>
+    <string name="name_label">Name</string>
+    <string name="mac_label">MAC address</string>
+    <string name="host_label">IP or broadcast</string>
+    <string name="port_label">Port</string>
+    <string name="form_hint_name">e.g. Gaming PC</string>
+    <string name="form_hint_mac">AA:BB:CC:DD:EE:FF</string>
+    <string name="form_hint_host">192.168.1.255</string>
+    <string name="validation_name">Name is required.</string>
+    <string name="validation_mac">The MAC format is invalid.</string>
+    <string name="validation_host">Host is required.</string>
+    <string name="validation_port">Port must be between 1 and 65535.</string>
+    <string name="delete_confirm">Delete</string>
+    <string name="delete_prompt">This device will be removed from local storage.</string>
+    <string name="editor_title_new">Register device</string>
+    <string name="editor_title_edit">Edit device</string>
+    <string name="editor_subtitle">Wake-on-LAN logic stays decoupled from the UI.</string>
+    <string name="editor_help">Make sure the target machine has Wake-on-LAN enabled in BIOS/UEFI and in the network adapter. A typical broadcast is 192.168.1.255 and the usual port is 9.</string>
+    <string name="manual_wake_success">Magic packet sent to %1$s.</string>
+    <string name="manual_wake_error">Could not wake %1$s.</string>
+    <string name="save_success">Device saved.</string>
+    <string name="delete_success">Device deleted.</string>
+    <string name="log_saved_device">Device saved: %1$s.</string>
+    <string name="log_deleted_device">Device deleted: %1$s.</string>
+    <string name="device_not_found">Requested device was not found.</string>
+    <string name="missing_device_name">Missing device name in the intent.</string>
+    <string name="app_actions_limit_note">Note: current voice action support depends on official App Actions limitations and needs validation on a real device.</string>
+    <string name="android_badge">Android 16+</string>
+
+    <string-array name="wake_device_queries">
+        <item>wake $deviceName with Kinetic WOL</item>
+        <item>turn on $deviceName with Kinetic WOL</item>
+        <item>send wake on lan to $deviceName with Kinetic WOL</item>
+    </string-array>
+</resources>
