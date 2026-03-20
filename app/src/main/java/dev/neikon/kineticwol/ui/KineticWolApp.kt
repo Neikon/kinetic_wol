@@ -37,6 +37,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -63,11 +64,12 @@ fun KineticWolApp(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
+    val configuration = LocalConfiguration.current
 
-    LaunchedEffect(viewModel, context) {
+    LaunchedEffect(viewModel, context, configuration) {
         viewModel.messages.collect { message ->
             snackbarHostState.showSnackbar(
-                context.getString(message.resId, *message.formatArgs.toTypedArray()),
+                context.resources.getString(message.resId, *message.formatArgs.toTypedArray()),
             )
         }
     }
