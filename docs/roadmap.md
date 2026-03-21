@@ -26,21 +26,26 @@
 - Añadido script Python para escuchar magic packets WOL en local
 - Integrada publicación de shortcuts dinámicos para equipos guardados
 - Añadida guía de release interna para validar App Actions con Play Console
+- Iniciada limpieza de build migrando a `built-in Kotlin` de AGP 9
+- Mejorada la robustez del formulario con validación de nombres duplicados y mejor entrada de teclado
+- Mejorados los placeholders del formulario y el copy principal en español para la sección de voz
+- Ajustada la navegación del editor para volver al dashboard con el botón atrás y limpiada su cabecera visual
 
 ## En curso
 
 - Revisar y endurecer App Actions sobre la base ya validada
+- Reducir warnings y complejidad de Gradle sin perder compatibilidad de build
 
 ## Pendiente inmediato
 
 - validar envío WOL en dispositivo real y red local
-- validar App Actions desde Android Studio App Actions Test Tool
-- comprobar que los shortcuts dinámicos aparecen en Assistant Shortcuts
+- comprobar invocación real desde Assistant/Gemini mediante surfaces disponibles o `internal testing release`
+- seguir endureciendo shortcuts dinámicos y flujo de fulfillment por voz
 - generar y subir una `internal testing release`
 - decidir si se añade historial persistente de eventos
 
 ## Riesgos abiertos
 
 - falta de toolchain local en esta sesión para compilar
-- validación real de App Actions pendiente en Android Studio
+- el `App Actions test tool` no está disponible en el Android Studio del usuario pese a que la documentación oficial todavía lo menciona
 - posible limitación de locale para voz en español

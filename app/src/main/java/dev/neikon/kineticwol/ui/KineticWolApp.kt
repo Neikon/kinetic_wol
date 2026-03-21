@@ -1,5 +1,6 @@
 package dev.neikon.kineticwol.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -43,6 +44,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -100,22 +104,19 @@ private fun KineticWolScaffold(
     onDeleteDraft: () -> Unit,
     onWakeDevice: (WakeDevice) -> Unit,
 ) {
+    BackHandler(enabled = uiState.editor != null) {
+        onDismissEditor()
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Column {
-                        Text(
-                            text = stringResource(id = R.string.app_name),
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                        Text(
-                            text = stringResource(id = R.string.android_badge),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                        )
-                    }
+                    Text(
+                        text = stringResource(id = R.string.app_name),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold,
+                    )
                 },
             )
         },
@@ -480,10 +481,9 @@ private fun DeviceEditorContent(
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = stringResource(
                         id = if (draft.id == null) R.string.editor_title_new else R.string.editor_title_edit,
@@ -497,7 +497,10 @@ private fun DeviceEditorContent(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            TextButton(onClick = onDismiss) {
+            TextButton(
+                onClick = onDismiss,
+                modifier = Modifier.padding(start = 12.dp),
+            ) {
                 Text(text = stringResource(id = R.string.cancel))
             }
         }
@@ -516,24 +519,40 @@ private fun DeviceEditorContent(
                     label = stringResource(id = R.string.name_label),
                     value = draft.name,
                     error = validationErrors["name"],
+                    placeholder = stringResource(id = R.string.form_hint_name),
+                    keyboardType = KeyboardType.Text,
+                    capitalization = KeyboardCapitalization.Words,
+                    imeAction = ImeAction.Next,
                     onValueChange = { onDraftChange(draft.copy(name = it)) },
                 )
                 DraftTextField(
                     label = stringResource(id = R.string.mac_label),
                     value = draft.macAddress,
                     error = validationErrors["macAddress"],
+                    placeholder = stringResource(id = R.string.form_hint_mac),
+                    keyboardType = KeyboardType.Ascii,
+                    capitalization = KeyboardCapitalization.Characters,
+                    imeAction = ImeAction.Next,
                     onValueChange = { onDraftChange(draft.copy(macAddress = it)) },
                 )
                 DraftTextField(
                     label = stringResource(id = R.string.host_label),
                     value = draft.host,
                     error = validationErrors["host"],
+                    placeholder = stringResource(id = R.string.form_hint_host),
+                    keyboardType = KeyboardType.Uri,
+                    capitalization = KeyboardCapitalization.None,
+                    imeAction = ImeAction.Next,
                     onValueChange = { onDraftChange(draft.copy(host = it)) },
                 )
                 DraftTextField(
                     label = stringResource(id = R.string.port_label),
                     value = draft.port,
                     error = validationErrors["port"],
+                    placeholder = stringResource(id = R.string.form_hint_port),
+                    keyboardType = KeyboardType.Number,
+                    capitalization = KeyboardCapitalization.None,
+                    imeAction = ImeAction.Done,
                     onValueChange = { onDraftChange(draft.copy(port = it)) },
                 )
             }
@@ -576,6 +595,10 @@ private fun DraftTextField(
     label: String,
     value: String,
     error: Int?,
+    placeholder: String,
+    keyboardType: KeyboardType,
+    capitalization: KeyboardCapitalization,
+    imeAction: ImeAction,
     onValueChange: (String) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -583,9 +606,15 @@ private fun DraftTextField(
             value = value,
             onValueChange = onValueChange,
             label = { Text(text = label) },
+            placeholder = { Text(text = placeholder) },
             isError = error != null,
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
+            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                keyboardType = keyboardType,
+                capitalization = capitalization,
+                imeAction = imeAction,
+            ),
         )
         if (error != null) {
             Text(
