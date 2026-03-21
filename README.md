@@ -42,13 +42,13 @@ app/src/main/java/dev/neikon/kineticwol/
 
 Piezas clave:
 
-- [MainActivity.kt](/var/home/neikon/repos/kinetic_wol/app/src/main/java/dev/neikon/kineticwol/MainActivity.kt): entrada principal de la app
-- [KineticWolApp.kt](/var/home/neikon/repos/kinetic_wol/app/src/main/java/dev/neikon/kineticwol/ui/KineticWolApp.kt): dashboard, formulario y navegación principal
-- [HomeViewModel.kt](/var/home/neikon/repos/kinetic_wol/app/src/main/java/dev/neikon/kineticwol/ui/home/HomeViewModel.kt): estado, validación y acciones de la pantalla
-- [WakeOnLanSender.kt](/var/home/neikon/repos/kinetic_wol/app/src/main/java/dev/neikon/kineticwol/domain/wol/WakeOnLanSender.kt): normalización MAC y envío del magic packet
-- [WakeDeviceActivity.kt](/var/home/neikon/repos/kinetic_wol/app/src/main/java/dev/neikon/kineticwol/actions/WakeDeviceActivity.kt): ejecución headless por intent
-- [DeviceShortcutPublisher.kt](/var/home/neikon/repos/kinetic_wol/app/src/main/java/dev/neikon/kineticwol/actions/DeviceShortcutPublisher.kt): shortcuts dinámicos por dispositivo
-- [shortcuts.xml](/var/home/neikon/repos/kinetic_wol/app/src/main/res/xml/shortcuts.xml): capability y query patterns de App Actions
+- [MainActivity.kt](app/src/main/java/dev/neikon/kineticwol/MainActivity.kt): entrada principal de la app
+- [KineticWolApp.kt](app/src/main/java/dev/neikon/kineticwol/ui/KineticWolApp.kt): dashboard, formulario y navegación principal
+- [HomeViewModel.kt](app/src/main/java/dev/neikon/kineticwol/ui/home/HomeViewModel.kt): estado, validación y acciones de la pantalla
+- [WakeOnLanSender.kt](app/src/main/java/dev/neikon/kineticwol/domain/wol/WakeOnLanSender.kt): normalización MAC y envío del magic packet
+- [WakeDeviceActivity.kt](app/src/main/java/dev/neikon/kineticwol/actions/WakeDeviceActivity.kt): ejecución headless por intent
+- [DeviceShortcutPublisher.kt](app/src/main/java/dev/neikon/kineticwol/actions/DeviceShortcutPublisher.kt): shortcuts dinámicos por dispositivo
+- [shortcuts.xml](app/src/main/res/xml/shortcuts.xml): capability y query patterns de App Actions
 
 ## Requisitos de entorno
 
@@ -74,8 +74,8 @@ Notas:
 
 El repo incluye un listener Python para verificar que llegan magic packets:
 
-- [listen_wol.py](/var/home/neikon/repos/kinetic_wol/scripts/listen_wol.py)
-- [scripts/README.md](/var/home/neikon/repos/kinetic_wol/scripts/README.md)
+- [listen_wol.py](scripts/listen_wol.py)
+- [scripts/README.md](scripts/README.md)
 
 Ejemplo recomendado:
 
@@ -121,38 +121,32 @@ Pero hay límites importantes:
 
 La guía preparada para eso está en:
 
-- [release_internal_testing.md](/var/home/neikon/repos/kinetic_wol/docs/release_internal_testing.md)
+- [release_internal_testing.md](docs/release_internal_testing.md)
 
 ## Tests
 
 Tests unitarios incluidos:
 
-- [WakeOnLanSenderTest.kt](/var/home/neikon/repos/kinetic_wol/app/src/test/java/dev/neikon/kineticwol/domain/wol/WakeOnLanSenderTest.kt)
-- [DeviceNameNormalizerTest.kt](/var/home/neikon/repos/kinetic_wol/app/src/test/java/dev/neikon/kineticwol/util/DeviceNameNormalizerTest.kt)
+- [WakeOnLanSenderTest.kt](app/src/test/java/dev/neikon/kineticwol/domain/wol/WakeOnLanSenderTest.kt)
+- [DeviceNameNormalizerTest.kt](app/src/test/java/dev/neikon/kineticwol/util/DeviceNameNormalizerTest.kt)
 
 ## Documentación del proyecto
 
-- [AGENTS.md](/var/home/neikon/repos/kinetic_wol/AGENTS.md): índice y reglas operativas
-- [docs/agent_memory.md](/var/home/neikon/repos/kinetic_wol/docs/agent_memory.md): memoria persistente del proyecto
-- [docs/app_spec.md](/var/home/neikon/repos/kinetic_wol/docs/app_spec.md): especificación funcional y técnica
-- [docs/roadmap.md](/var/home/neikon/repos/kinetic_wol/docs/roadmap.md): histórico, estado y próximos pasos
-- [docs/integration_blueprint.md](/var/home/neikon/repos/kinetic_wol/docs/integration_blueprint.md): blueprint inicial de integración
-- [docs/release_internal_testing.md](/var/home/neikon/repos/kinetic_wol/docs/release_internal_testing.md): guía para testing interno en Play Console
+- [AGENTS.md](AGENTS.md): índice y reglas operativas
+- [docs/agent_memory.md](docs/agent_memory.md): memoria persistente del proyecto
+- [docs/app_spec.md](docs/app_spec.md): especificación funcional y técnica
+- [docs/roadmap.md](docs/roadmap.md): histórico, estado y próximos pasos
+- [docs/release_internal_testing.md](docs/release_internal_testing.md): guía para testing interno en Play Console
 
 ## Estado del roadmap
 
-Hecho:
-
-- CRUD de dispositivos
-- persistencia con Room
-- envío WOL manual
-- fulfillment headless
-- shortcuts dinámicos
-- limpieza inicial de build con AGP 9
-- mejoras de UX en formulario y navegación
-
-Pendiente principal:
-
-- validar la invocación real desde Assistant/Gemini fuera de `adb`
-- endurecer la estrategia final de App Actions
-- decidir si se añade historial persistente de eventos
+- [x] CRUD de dispositivos
+- [x] Persistencia con Room
+- [x] Envío WOL manual
+- [x] Fulfillment headless
+- [x] Shortcuts dinámicos
+- [x] Limpieza inicial de build con AGP 9
+- [x] Mejoras de UX en formulario y navegación
+- [ ] Validar la invocación real desde Assistant/Gemini fuera de `adb`
+- [ ] Endurecer la estrategia final de App Actions
+- [ ] Decidir si se añade historial persistente de eventos

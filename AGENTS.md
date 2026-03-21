@@ -2,17 +2,15 @@
 
 Este repositorio usa estos documentos como memoria operativa persistente. Antes de continuar el desarrollo, léelos en este orden:
 
-1. [docs/agent_memory.md](/var/home/neikon/repos/kinetic_wol/docs/agent_memory.md)
-2. [docs/app_spec.md](/var/home/neikon/repos/kinetic_wol/docs/app_spec.md)
-3. [docs/roadmap.md](/var/home/neikon/repos/kinetic_wol/docs/roadmap.md)
-4. [docs/integration_blueprint.md](/var/home/neikon/repos/kinetic_wol/docs/integration_blueprint.md)
+1. [docs/agent_memory.md](docs/agent_memory.md)
+2. [docs/app_spec.md](docs/app_spec.md)
+3. [docs/roadmap.md](docs/roadmap.md)
 
 Reglas de uso:
 
 - `agent_memory.md`: contexto acordado con el usuario y decisiones activas.
 - `app_spec.md`: definición funcional y técnica detallada de Kinetic WOL.
 - `roadmap.md`: histórico de trabajo, estado actual y próximos pasos.
-- `integration_blueprint.md`: referencia de integración original para WOL y App Actions.
 
 Cuando se cierre una sesión:
 

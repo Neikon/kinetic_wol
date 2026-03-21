@@ -3,12 +3,12 @@
 ## Checklist completado
 
 - [x] Crear branch inicial de trabajo `android-actions-wol`
-- [x] Explorar el repo y leer [integration_blueprint.md](/var/home/neikon/repos/kinetic_wol/docs/integration_blueprint.md)
+- [x] Explorar el repo y revisar el blueprint inicial de integración
 - [x] Definir decisiones de producto y tecnología con el usuario
 - [x] Migrar completamente el proyecto a Android nativo
 - [x] Añadir memoria persistente del proyecto
 - [x] Añadir especificación detallada del producto
-- [x] Añadir índice operativo en [AGENTS.md](/var/home/neikon/repos/kinetic_wol/AGENTS.md)
+- [x] Añadir índice operativo en [AGENTS.md](../AGENTS.md)
 - [x] Eliminar el scaffold anterior del árbol de trabajo
 - [x] Crear proyecto Android con `compileSdk/minSdk/targetSdk 36`
 - [x] Configurar base Compose + Material 3
@@ -34,7 +34,7 @@
 - [x] Validar el envío WOL manual contra un listener UDP local
 - [x] Validar el fulfillment headless mediante `adb`
 - [x] Confirmar que los shortcuts dinámicos aparecen en Android
-- [x] Mejorar el [README.md](/var/home/neikon/repos/kinetic_wol/README.md)
+- [x] Mejorar el [README.md](../README.md)
 
 ## Checklist en curso
 

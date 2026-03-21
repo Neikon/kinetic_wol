@@ -29,6 +29,7 @@
 ## Restricciones y notas
 
 - El prototipo web original se ha eliminado del árbol de trabajo.
+- El `integration_blueprint.md` inicial se retiró del repositorio al quedar obsoleto y contener referencias locales que no debían publicarse.
 - La integración de App Actions para este caso no dispone de un BII oficial específico para Wake-on-LAN.
 - La implementación actual se apoyará en un fulfillment headless y en un custom intent para la parte de Assistant/App Actions.
 - Según la documentación oficial actual, los custom intents de App Actions tienen limitación de locale `en-US`; esto es un riesgo conocido para el objetivo de voz en español.
