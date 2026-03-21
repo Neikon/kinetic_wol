@@ -4,7 +4,7 @@ Kinetic WOL es una app Android nativa para guardar equipos de red y enviarles pa
 
 ## Estado actual
 
-- Base Android migrada por completo desde el prototipo web original
+- App Android nativa funcional
 - UI principal en Jetpack Compose
 - Persistencia local real con Room
 - Envío WOL manual funcional
