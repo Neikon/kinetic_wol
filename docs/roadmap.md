@@ -1,51 +1,56 @@
 # Roadmap
 
-## Hecho
+## Checklist completado
 
-- Creado branch de trabajo `android-actions-wol`
-- Explorado el prototipo web original
-- Leído `docs/integration_blueprint.md`
-- Definidas decisiones de producto y tecnología con el usuario
-- Decidido migrar completamente a Android nativo
-- Añadida memoria persistente del proyecto
-- Añadida especificación detallada del producto
-- Añadido índice `AGENTS.md`
-- Eliminado el scaffold web original del árbol de trabajo
-- Creado proyecto Android con `compileSdk/minSdk/targetSdk 36`
-- Configurada base Compose + Material 3
-- Implementado modelo `WakeDevice`
-- Implementada persistencia con `Room`
-- Implementado `WakeOnLanSender`
-- Implementado dashboard Compose y pantalla de edición
-- Implementada `WakeDeviceActivity` headless
-- Añadido `shortcuts.xml`
-- Añadidos recursos bilingües base
-- Añadidos tests unitarios iniciales
-- Rama publicada en remoto y pull request abierto
-- Android Studio actualizó AGP, Gradle wrapper y configuración de daemon JVM para la build local
-- Añadido script Python para escuchar magic packets WOL en local
-- Integrada publicación de shortcuts dinámicos para equipos guardados
-- Añadida guía de release interna para validar App Actions con Play Console
-- Iniciada limpieza de build migrando a `built-in Kotlin` de AGP 9
-- Mejorada la robustez del formulario con validación de nombres duplicados y mejor entrada de teclado
-- Mejorados los placeholders del formulario y el copy principal en español para la sección de voz
-- Ajustada la navegación del editor para volver al dashboard con el botón atrás y limpiada su cabecera visual
+- [x] Crear branch inicial de trabajo `android-actions-wol`
+- [x] Explorar el repo y leer [integration_blueprint.md](/var/home/neikon/repos/kinetic_wol/docs/integration_blueprint.md)
+- [x] Definir decisiones de producto y tecnología con el usuario
+- [x] Migrar completamente el proyecto a Android nativo
+- [x] Añadir memoria persistente del proyecto
+- [x] Añadir especificación detallada del producto
+- [x] Añadir índice operativo en [AGENTS.md](/var/home/neikon/repos/kinetic_wol/AGENTS.md)
+- [x] Eliminar el scaffold anterior del árbol de trabajo
+- [x] Crear proyecto Android con `compileSdk/minSdk/targetSdk 36`
+- [x] Configurar base Compose + Material 3
+- [x] Implementar modelo `WakeDevice`
+- [x] Implementar persistencia con `Room`
+- [x] Implementar `WakeOnLanSender`
+- [x] Implementar dashboard Compose y pantalla de edición
+- [x] Implementar `WakeDeviceActivity` headless
+- [x] Añadir `shortcuts.xml`
+- [x] Añadir recursos bilingües base
+- [x] Añadir tests unitarios iniciales
+- [x] Publicar ramas de trabajo y consolidar merges en `main`
+- [x] Actualizar la toolchain local del proyecto con Android Studio
+- [x] Añadir script Python para escuchar magic packets WOL en local
+- [x] Integrar publicación de shortcuts dinámicos para equipos guardados
+- [x] Añadir guía de release interna para validar App Actions con Play Console
+- [x] Limpiar la build migrando a `built-in Kotlin` de AGP 9
+- [x] Mejorar la robustez del formulario con validación de nombres duplicados
+- [x] Mejorar la entrada de teclado del formulario por tipo de campo
+- [x] Añadir placeholders y copy localizado en la UI principal
+- [x] Ajustar la navegación del editor para volver al dashboard con el botón atrás
+- [x] Limpiar la cabecera del editor y el badge inferior del título
+- [x] Validar el envío WOL manual contra un listener UDP local
+- [x] Validar el fulfillment headless mediante `adb`
+- [x] Confirmar que los shortcuts dinámicos aparecen en Android
+- [x] Mejorar el [README.md](/var/home/neikon/repos/kinetic_wol/README.md)
 
-## En curso
+## Checklist en curso
 
-- Revisar y endurecer App Actions sobre la base ya validada
-- Reducir warnings y complejidad de Gradle sin perder compatibilidad de build
+- [ ] Revisar y endurecer App Actions sobre la base ya validada
+- [ ] Reducir warnings y complejidad de Gradle sin perder compatibilidad de build
 
-## Pendiente inmediato
+## Checklist pendiente
 
-- validar envío WOL en dispositivo real y red local
-- comprobar invocación real desde Assistant/Gemini mediante surfaces disponibles o `internal testing release`
-- seguir endureciendo shortcuts dinámicos y flujo de fulfillment por voz
-- generar y subir una `internal testing release`
-- decidir si se añade historial persistente de eventos
+- [ ] Validar envío WOL en dispositivo real y red local
+- [ ] Comprobar invocación real desde Assistant/Gemini mediante surfaces disponibles o `internal testing release`
+- [ ] Seguir endureciendo shortcuts dinámicos y flujo de fulfillment por voz
+- [ ] Generar y subir una `internal testing release`
+- [ ] Decidir si se añade historial persistente de eventos
 
 ## Riesgos abiertos
 
-- falta de toolchain local en esta sesión para compilar
-- el `App Actions test tool` no está disponible en el Android Studio del usuario pese a que la documentación oficial todavía lo menciona
-- posible limitación de locale para voz en español
+- [ ] Falta de toolchain local en esta sesión para compilar desde terminal
+- [ ] El `App Actions test tool` no está disponible en el Android Studio del usuario pese a que la documentación oficial todavía lo menciona
+- [ ] Posible limitación de locale para voz en español
