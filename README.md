@@ -22,6 +22,10 @@ Proyecto Android nativo para despertar dispositivos Wake-on-LAN desde el teléfo
 
 El repositorio ha dejado de ser un prototipo web. Ahora contiene la base Android y la implementación inicial de la app.
 
+## Siguiente validacion recomendada
+
+La lógica local ya está validada. Para probar App Actions en un entorno más cercano al real, sigue [docs/release_internal_testing.md](/var/home/neikon/repos/kinetic_wol/docs/release_internal_testing.md).
+
 ## Nota del entorno
 
 En esta sesión no había `java` ni `gradle` instalados, así que no he podido compilar ni generar un wrapper funcional desde terminal. El proyecto queda preparado para abrirse en Android Studio con toolchain Android moderna.

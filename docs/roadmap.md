@@ -25,6 +25,7 @@
 - Android Studio actualizó AGP, Gradle wrapper y configuración de daemon JVM para la build local
 - Añadido script Python para escuchar magic packets WOL en local
 - Integrada publicación de shortcuts dinámicos para equipos guardados
+- Añadida guía de release interna para validar App Actions con Play Console
 
 ## En curso
 
@@ -35,6 +36,7 @@
 - validar envío WOL en dispositivo real y red local
 - validar App Actions desde Android Studio App Actions Test Tool
 - comprobar que los shortcuts dinámicos aparecen en Assistant Shortcuts
+- generar y subir una `internal testing release`
 - decidir si se añade historial persistente de eventos
 
 ## Riesgos abiertos

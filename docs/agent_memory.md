@@ -55,3 +55,8 @@
 
 - Android Studio ha generado ajustes de compatibilidad en `gradle.properties`
 - Esos flags producen warnings deprecados en build, pero de momento se mantienen para priorizar que el proyecto compile
+
+## Preparacion de release
+
+- La siguiente validación real recomendada es una `internal testing release` en Google Play
+- Se ha añadido una guía operativa en `docs/release_internal_testing.md`
