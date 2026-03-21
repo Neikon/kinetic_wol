@@ -50,8 +50,6 @@
     <string name="device_not_found">No se encontró el dispositivo solicitado.</string>
     <string name="missing_device_name">Falta el nombre del dispositivo en el intent.</string>
     <string name="app_actions_limit_note">Nota: la acción de voz actual depende de las limitaciones oficiales de App Actions y requiere validación en dispositivo real.</string>
-    <string name="android_badge">Android 16+</string>
-
     <string-array name="wake_device_queries">
         <item>wake $deviceName with Kinetic WOL</item>
         <item>turn on $deviceName with Kinetic WOL</item>

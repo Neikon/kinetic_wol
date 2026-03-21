@@ -29,6 +29,7 @@
 - Iniciada limpieza de build migrando a `built-in Kotlin` de AGP 9
 - Mejorada la robustez del formulario con validación de nombres duplicados y mejor entrada de teclado
 - Mejorados los placeholders del formulario y el copy principal en español para la sección de voz
+- Ajustada la navegación del editor para volver al dashboard con el botón atrás y limpiada su cabecera visual
 
 ## En curso
 
