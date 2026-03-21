@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <capability
+        android:name="custom.actions.intent.WAKE_DEVICE"
+        app:queryPatterns="@array/wake_device_queries">
+        <intent
+            android:action="dev.neikon.kineticwol.action.WAKE_DEVICE"
+            android:targetClass="dev.neikon.kineticwol.actions.WakeDeviceActivity"
+            android:targetPackage="dev.neikon.kineticwol">
+            <parameter
+                android:key="deviceName"
+                android:mimeType="https://schema.org/Text"
+                android:name="deviceName" />
+        </intent>
+    </capability>
+
+</shortcuts>

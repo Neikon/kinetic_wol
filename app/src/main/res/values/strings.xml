@@ -1,0 +1,58 @@
+<resources>
+    <string name="app_name">Kinetic WOL</string>
+    <string name="hero_overline">Wake-on-LAN</string>
+    <string name="hero_title">Despierta tus equipos desde Android</string>
+    <string name="hero_body">Gestiona dispositivos, lanza magic packets reales y prepara una invocación por voz sin depender de abrir pantallas manualmente.</string>
+    <string name="summary_devices">%1$d dispositivos</string>
+    <string name="summary_logs">%1$d eventos recientes</string>
+    <string name="add_device">Añadir dispositivo</string>
+    <string name="edit_device">Editar dispositivo</string>
+    <string name="register_device">Registrar dispositivo</string>
+    <string name="save">Guardar</string>
+    <string name="delete">Eliminar</string>
+    <string name="cancel">Cancelar</string>
+    <string name="wake">Despertar</string>
+    <string name="voice_section_title">Invocación por voz</string>
+    <string name="voice_section_body">La app integra un fulfillment headless para recibir un dispositivo por nombre y emitir Wake-on-LAN sin navegación manual.</string>
+    <string name="voice_status_title">Estado App Actions</string>
+    <string name="voice_status_body">Se implementa sobre la infraestructura oficial actual de App Actions. La validación final debe hacerse desde Android Studio y dispositivo real.</string>
+    <string name="voice_example">\"Wake my Gaming PC with Kinetic WOL\"</string>
+    <string name="logs_title">Actividad reciente</string>
+    <string name="logs_empty">Todavía no hay actividad en esta sesión.</string>
+    <string name="empty_title">Aún no hay dispositivos</string>
+    <string name="empty_body">Añade tu primer equipo para empezar a enviar paquetes Wake-on-LAN desde la app o mediante fulfillment por voz.</string>
+    <string name="name_label">Nombre</string>
+    <string name="mac_label">Dirección MAC</string>
+    <string name="host_label">IP o broadcast</string>
+    <string name="port_label">Puerto</string>
+    <string name="form_hint_name">Ej. Gaming PC</string>
+    <string name="form_hint_mac">AA:BB:CC:DD:EE:FF</string>
+    <string name="form_hint_host">192.168.1.255</string>
+    <string name="validation_name">El nombre es obligatorio.</string>
+    <string name="validation_mac">La MAC no tiene un formato válido.</string>
+    <string name="validation_host">El host es obligatorio.</string>
+    <string name="validation_port">El puerto debe estar entre 1 y 65535.</string>
+    <string name="delete_confirm">Eliminar</string>
+    <string name="delete_prompt">Este dispositivo se eliminará del almacenamiento local.</string>
+    <string name="editor_title_new">Registrar dispositivo</string>
+    <string name="editor_title_edit">Editar dispositivo</string>
+    <string name="editor_subtitle">La lógica Wake-on-LAN queda desacoplada de la UI.</string>
+    <string name="editor_help">Asegúrate de que el equipo destino tenga Wake-on-LAN activado en BIOS/UEFI y en el adaptador de red. El broadcast típico es 192.168.1.255 y el puerto habitual es 9.</string>
+    <string name="manual_wake_success">Magic packet enviado a %1$s.</string>
+    <string name="manual_wake_error">No se pudo despertar %1$s.</string>
+    <string name="save_success">Dispositivo guardado.</string>
+    <string name="delete_success">Dispositivo eliminado.</string>
+    <string name="log_saved_device">Dispositivo guardado: %1$s.</string>
+    <string name="log_deleted_device">Dispositivo eliminado: %1$s.</string>
+    <string name="shortcut_wake_device_long_label">Despertar %1$s</string>
+    <string name="device_not_found">No se encontró el dispositivo solicitado.</string>
+    <string name="missing_device_name">Falta el nombre del dispositivo en el intent.</string>
+    <string name="app_actions_limit_note">Nota: la acción de voz actual depende de las limitaciones oficiales de App Actions y requiere validación en dispositivo real.</string>
+    <string name="android_badge">Android 16+</string>
+
+    <string-array name="wake_device_queries">
+        <item>wake $deviceName with Kinetic WOL</item>
+        <item>turn on $deviceName with Kinetic WOL</item>
+        <item>send wake on lan to $deviceName with Kinetic WOL</item>
+    </string-array>
+</resources>
