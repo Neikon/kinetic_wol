@@ -26,10 +26,12 @@
 - Añadido script Python para escuchar magic packets WOL en local
 - Integrada publicación de shortcuts dinámicos para equipos guardados
 - Añadida guía de release interna para validar App Actions con Play Console
+- Iniciada limpieza de build migrando a `built-in Kotlin` de AGP 9
 
 ## En curso
 
 - Revisar y endurecer App Actions sobre la base ya validada
+- Reducir warnings y complejidad de Gradle sin perder compatibilidad de build
 
 ## Pendiente inmediato
 

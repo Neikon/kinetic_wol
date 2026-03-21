@@ -53,8 +53,8 @@
 
 ## Notas de build actuales
 
-- Android Studio ha generado ajustes de compatibilidad en `gradle.properties`
-- Esos flags producen warnings deprecados en build, pero de momento se mantienen para priorizar que el proyecto compile
+- La rama de limpieza migra la build a `built-in Kotlin` de AGP 9
+- Los flags heredados de compatibilidad añadidos por Android Studio se han eliminado para reducir warnings y deuda técnica
 
 ## Preparacion de release
 
