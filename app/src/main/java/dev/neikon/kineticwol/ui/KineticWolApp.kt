@@ -43,6 +43,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -516,24 +519,36 @@ private fun DeviceEditorContent(
                     label = stringResource(id = R.string.name_label),
                     value = draft.name,
                     error = validationErrors["name"],
+                    keyboardType = KeyboardType.Text,
+                    capitalization = KeyboardCapitalization.Words,
+                    imeAction = ImeAction.Next,
                     onValueChange = { onDraftChange(draft.copy(name = it)) },
                 )
                 DraftTextField(
                     label = stringResource(id = R.string.mac_label),
                     value = draft.macAddress,
                     error = validationErrors["macAddress"],
+                    keyboardType = KeyboardType.Ascii,
+                    capitalization = KeyboardCapitalization.Characters,
+                    imeAction = ImeAction.Next,
                     onValueChange = { onDraftChange(draft.copy(macAddress = it)) },
                 )
                 DraftTextField(
                     label = stringResource(id = R.string.host_label),
                     value = draft.host,
                     error = validationErrors["host"],
+                    keyboardType = KeyboardType.Uri,
+                    capitalization = KeyboardCapitalization.None,
+                    imeAction = ImeAction.Next,
                     onValueChange = { onDraftChange(draft.copy(host = it)) },
                 )
                 DraftTextField(
                     label = stringResource(id = R.string.port_label),
                     value = draft.port,
                     error = validationErrors["port"],
+                    keyboardType = KeyboardType.Number,
+                    capitalization = KeyboardCapitalization.None,
+                    imeAction = ImeAction.Done,
                     onValueChange = { onDraftChange(draft.copy(port = it)) },
                 )
             }
@@ -576,6 +591,9 @@ private fun DraftTextField(
     label: String,
     value: String,
     error: Int?,
+    keyboardType: KeyboardType,
+    capitalization: KeyboardCapitalization,
+    imeAction: ImeAction,
     onValueChange: (String) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -586,6 +604,11 @@ private fun DraftTextField(
             isError = error != null,
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
+            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                keyboardType = keyboardType,
+                capitalization = capitalization,
+                imeAction = imeAction,
+            ),
         )
         if (error != null) {
             Text(

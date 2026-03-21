@@ -32,6 +32,7 @@
 - La integración de App Actions para este caso no dispone de un BII oficial específico para Wake-on-LAN.
 - La implementación actual se apoyará en un fulfillment headless y en un custom intent para la parte de Assistant/App Actions.
 - Según la documentación oficial actual, los custom intents de App Actions tienen limitación de locale `en-US`; esto es un riesgo conocido para el objetivo de voz en español.
+- La documentación oficial sigue mencionando el `App Actions test tool`, pero en el Android Studio del usuario no aparece el plugin correspondiente; la validación práctica queda apoyada en `adb`, shortcuts dinámicos y, si se desea cerrar el flujo real, una `internal testing release`.
 
 ## Estado del entorno de esta sesión
 
@@ -50,11 +51,15 @@
 - publicación de shortcuts dinámicos por dispositivo para Assistant/Gemini
 - Tests unitarios básicos para WOL y normalización
 - Android Studio actualizó la toolchain del proyecto a AGP `9.1.0`, Gradle `9.3.1` y daemon JVM `21`
+- Validado el envío manual de WOL contra un listener Python local
+- Validado el fulfillment headless mediante `adb` resolviendo dispositivos guardados por nombre
+- Mejorada la UX del formulario con validación de nombres duplicados, limpieza selectiva de errores y teclados específicos por campo
 
 ## Notas de build actuales
 
 - La rama de limpieza migra la build a `built-in Kotlin` de AGP 9
 - Los flags heredados de compatibilidad añadidos por Android Studio se han eliminado para reducir warnings y deuda técnica
+- La build `assembleDebug` compila correctamente en el entorno Android Studio del usuario tras la limpieza inicial
 
 ## Preparacion de release
 

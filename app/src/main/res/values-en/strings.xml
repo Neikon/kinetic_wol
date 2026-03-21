@@ -29,6 +29,7 @@
     <string name="form_hint_mac">AA:BB:CC:DD:EE:FF</string>
     <string name="form_hint_host">192.168.1.255</string>
     <string name="validation_name">Name is required.</string>
+    <string name="validation_name_duplicate">Another device already uses that name.</string>
     <string name="validation_mac">The MAC format is invalid.</string>
     <string name="validation_host">Host is required.</string>
     <string name="validation_port">Port must be between 1 and 65535.</string>

@@ -9,6 +9,7 @@ import dev.neikon.kineticwol.R
 import dev.neikon.kineticwol.domain.model.WakeDevice
 import dev.neikon.kineticwol.domain.repository.DeviceRepository
 import dev.neikon.kineticwol.domain.wol.WakeOnLanSender
+import dev.neikon.kineticwol.util.normalizeDeviceName
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.UUID
@@ -75,7 +76,14 @@ class HomeViewModel(
     }
 
     fun updateDraft(draft: DeviceDraft) {
-        _uiState.update { it.copy(editor = draft) }
+        _uiState.update { state ->
+            state.copy(
+                editor = draft,
+                validationErrors = state.validationErrors.filterKeys { key ->
+                    key !in changedFields(state.editor, draft)
+                },
+            )
+        }
     }
 
     fun saveDraft() {
@@ -136,6 +144,14 @@ class HomeViewModel(
 
         if (draft.name.isBlank()) {
             errors["name"] = R.string.validation_name
+        } else {
+            val normalizedDraftName = normalizeDeviceName(draft.name)
+            val hasDuplicate = uiState.value.devices.any { device ->
+                device.id != draft.id && normalizeDeviceName(device.name) == normalizedDraftName
+            }
+            if (hasDuplicate) {
+                errors["name"] = R.string.validation_name_duplicate
+            }
         }
         if (draft.host.isBlank()) {
             errors["host"] = R.string.validation_host
@@ -158,12 +174,28 @@ class HomeViewModel(
         val timestamp = LocalTime.now().format(TIME_FORMATTER)
         _uiState.update { state ->
             state.copy(
-                logs = listOf(EventLog(timestamp = timestamp, message = message)) + state.logs,
+                logs = (listOf(EventLog(timestamp = timestamp, message = message)) + state.logs)
+                    .take(MAX_LOG_ENTRIES),
             )
         }
     }
 
+    private fun changedFields(
+        previous: DeviceDraft?,
+        current: DeviceDraft,
+    ): Set<String> {
+        if (previous == null) return emptySet()
+
+        val changed = mutableSetOf<String>()
+        if (previous.name != current.name) changed += "name"
+        if (previous.macAddress != current.macAddress) changed += "macAddress"
+        if (previous.host != current.host) changed += "host"
+        if (previous.port != current.port) changed += "port"
+        return changed
+    }
+
     companion object {
+        private const val MAX_LOG_ENTRIES = 50
         private val TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss")
 
         fun factory(appContainer: AppContainer): ViewModelProvider.Factory =
