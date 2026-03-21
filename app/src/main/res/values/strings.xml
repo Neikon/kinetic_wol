@@ -16,7 +16,7 @@
     <string name="voice_section_body">La app integra un fulfillment headless para recibir un dispositivo por nombre y emitir Wake-on-LAN sin navegación manual.</string>
     <string name="voice_status_title">Estado App Actions</string>
     <string name="voice_status_body">Se implementa sobre la infraestructura oficial actual de App Actions. La validación final debe hacerse desde Android Studio y dispositivo real.</string>
-    <string name="voice_example">\"Wake my Gaming PC with Kinetic WOL\"</string>
+    <string name="voice_example">\"Despierta mi Gaming PC con Kinetic WOL\"</string>
     <string name="logs_title">Actividad reciente</string>
     <string name="logs_empty">Todavía no hay actividad en esta sesión.</string>
     <string name="empty_title">Aún no hay dispositivos</string>
@@ -28,6 +28,7 @@
     <string name="form_hint_name">Ej. Gaming PC</string>
     <string name="form_hint_mac">AA:BB:CC:DD:EE:FF</string>
     <string name="form_hint_host">192.168.1.255</string>
+    <string name="form_hint_port">9</string>
     <string name="validation_name">El nombre es obligatorio.</string>
     <string name="validation_name_duplicate">Ya existe otro dispositivo con ese nombre.</string>
     <string name="validation_mac">La MAC no tiene un formato válido.</string>
