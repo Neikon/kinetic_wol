@@ -8,6 +8,7 @@ data class HomeUiState(
     val logs: List<EventLog> = emptyList(),
     val editor: DeviceDraft? = null,
     val validationErrors: Map<String, Int> = emptyMap(),
+    val isHeroCardVisible: Boolean = true,
 )
 
 data class EventLog(

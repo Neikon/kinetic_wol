@@ -82,6 +82,7 @@ fun KineticWolApp(
         uiState = uiState,
         snackbarHostState = snackbarHostState,
         onAddDevice = viewModel::openCreateDevice,
+        onDismissHeroCard = viewModel::dismissHeroCard,
         onEditDevice = viewModel::openEditDevice,
         onDismissEditor = viewModel::dismissEditor,
         onDraftChange = viewModel::updateDraft,
@@ -97,6 +98,7 @@ private fun KineticWolScaffold(
     uiState: HomeUiState,
     snackbarHostState: SnackbarHostState,
     onAddDevice: () -> Unit,
+    onDismissHeroCard: () -> Unit,
     onEditDevice: (WakeDevice) -> Unit,
     onDismissEditor: () -> Unit,
     onDraftChange: (DeviceDraft) -> Unit,
@@ -138,6 +140,7 @@ private fun KineticWolScaffold(
                 DashboardContent(
                     uiState = uiState,
                     onAddDevice = onAddDevice,
+                    onDismissHeroCard = onDismissHeroCard,
                     onEditDevice = onEditDevice,
                     onWakeDevice = onWakeDevice,
                     modifier = Modifier.padding(innerPadding),
@@ -162,6 +165,7 @@ private fun KineticWolScaffold(
 private fun DashboardContent(
     uiState: HomeUiState,
     onAddDevice: () -> Unit,
+    onDismissHeroCard: () -> Unit,
     onEditDevice: (WakeDevice) -> Unit,
     onWakeDevice: (WakeDevice) -> Unit,
     modifier: Modifier = Modifier,
@@ -171,11 +175,14 @@ private fun DashboardContent(
         contentPadding = PaddingValues(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        item {
-            HeroCard(
-                deviceCount = uiState.devices.size,
-                logCount = uiState.logs.size,
-            )
+        if (uiState.isHeroCardVisible) {
+            item {
+                HeroCard(
+                    deviceCount = uiState.devices.size,
+                    logCount = uiState.logs.size,
+                    onDismiss = onDismissHeroCard,
+                )
+            }
         }
 
         item {
@@ -209,6 +216,7 @@ private fun DashboardContent(
 private fun HeroCard(
     deviceCount: Int,
     logCount: Int,
+    onDismiss: () -> Unit,
 ) {
     ElevatedCard(
         modifier = Modifier.fillMaxWidth(),
@@ -229,6 +237,14 @@ private fun HeroCard(
                 )
                 .padding(24.dp),
         ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                TextButton(onClick = onDismiss) {
+                    Text(text = stringResource(id = R.string.dismiss))
+                }
+            }
             Text(
                 text = stringResource(id = R.string.hero_overline),
                 style = MaterialTheme.typography.labelLarge,
