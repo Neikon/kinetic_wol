@@ -47,6 +47,13 @@
     <string name="log_saved_device">Device saved: %1$s.</string>
     <string name="log_deleted_device">Device deleted: %1$s.</string>
     <string name="shortcut_wake_device_long_label">Wake %1$s</string>
+    <string name="quick_tile_label">Wake</string>
+    <string name="quick_tile_subtitle_empty">No devices</string>
+    <string name="quick_tile_subtitle_many">%1$d devices</string>
+    <string name="quick_tile_picker_title">Quick tile</string>
+    <string name="quick_tile_picker_subtitle">Choose a device to send Wake-on-LAN</string>
+    <string name="quick_tile_picker_empty">No saved devices yet.</string>
+    <string name="quick_tile_picker_action">Tap to wake</string>
     <string name="device_not_found">Requested device was not found.</string>
     <string name="missing_device_name">Missing device name in the intent.</string>
     <string name="app_actions_limit_note">Note: current voice action support depends on official App Actions limitations and needs validation on a real device.</string>

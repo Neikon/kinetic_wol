@@ -47,6 +47,13 @@
     <string name="log_saved_device">Dispositivo guardado: %1$s.</string>
     <string name="log_deleted_device">Dispositivo eliminado: %1$s.</string>
     <string name="shortcut_wake_device_long_label">Despertar %1$s</string>
+    <string name="quick_tile_label">Despertar</string>
+    <string name="quick_tile_subtitle_empty">Sin dispositivos</string>
+    <string name="quick_tile_subtitle_many">%1$d equipos</string>
+    <string name="quick_tile_picker_title">Quick tile</string>
+    <string name="quick_tile_picker_subtitle">Elige un equipo para enviar Wake-on-LAN</string>
+    <string name="quick_tile_picker_empty">No hay dispositivos guardados todavía.</string>
+    <string name="quick_tile_picker_action">Tocar para despertar</string>
     <string name="device_not_found">No se encontró el dispositivo solicitado.</string>
     <string name="missing_device_name">Falta el nombre del dispositivo en el intent.</string>
     <string name="app_actions_limit_note">Nota: la acción de voz actual depende de las limitaciones oficiales de App Actions y requiere validación en dispositivo real.</string>
