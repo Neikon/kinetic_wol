@@ -185,10 +185,6 @@ private fun DashboardContent(
             }
         }
 
-        item {
-            VoiceCard()
-        }
-
         if (uiState.devices.isEmpty()) {
             item {
                 EmptyDevicesCard(onAddDevice = onAddDevice)
@@ -208,6 +204,10 @@ private fun DashboardContent(
 
         item {
             LogsCard(logs = uiState.logs)
+        }
+
+        item {
+            VoiceCard()
         }
     }
 }
