@@ -11,6 +11,7 @@
     <string name="save">Guardar</string>
     <string name="delete">Eliminar</string>
     <string name="cancel">Cancelar</string>
+    <string name="dismiss">Ocultar</string>
     <string name="wake">Despertar</string>
     <string name="voice_section_title">Invocación por voz</string>
     <string name="voice_section_body">La app integra un fulfillment headless para recibir un dispositivo por nombre y emitir Wake-on-LAN sin navegación manual.</string>

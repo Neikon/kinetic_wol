@@ -11,6 +11,7 @@
     <string name="save">Save</string>
     <string name="delete">Delete</string>
     <string name="cancel">Cancel</string>
+    <string name="dismiss">Dismiss</string>
     <string name="wake">Wake</string>
     <string name="voice_section_title">Voice invocation</string>
     <string name="voice_section_body">The app includes a headless fulfillment that resolves a device by name and sends Wake-on-LAN without manual navigation.</string>

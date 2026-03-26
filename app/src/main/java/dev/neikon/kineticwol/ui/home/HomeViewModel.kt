@@ -26,8 +26,13 @@ class HomeViewModel(
     private val repository: DeviceRepository,
     private val wakeOnLanSender: WakeOnLanSender,
     private val deviceShortcutPublisher: DeviceShortcutPublisher,
+    private val homeScreenPreferences: HomeScreenPreferences,
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(HomeUiState())
+    private val _uiState = MutableStateFlow(
+        HomeUiState(
+            isHeroCardVisible = !homeScreenPreferences.isHeroCardDismissed(),
+        ),
+    )
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     private val _messages = MutableSharedFlow<UiMessage>()
@@ -139,6 +144,11 @@ class HomeViewModel(
         }
     }
 
+    fun dismissHeroCard() {
+        homeScreenPreferences.setHeroCardDismissed(true)
+        _uiState.update { state -> state.copy(isHeroCardVisible = false) }
+    }
+
     private fun validateDraft(draft: DeviceDraft): Map<String, Int> {
         val errors = mutableMapOf<String, Int>()
 
@@ -206,6 +216,7 @@ class HomeViewModel(
                         repository = appContainer.deviceRepository,
                         wakeOnLanSender = appContainer.wakeOnLanSender,
                         deviceShortcutPublisher = appContainer.deviceShortcutPublisher,
+                        homeScreenPreferences = appContainer.homeScreenPreferences,
                     ) as T
             }
     }
