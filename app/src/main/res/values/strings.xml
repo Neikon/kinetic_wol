@@ -39,6 +39,14 @@
     <string name="editor_title_new">Registrar dispositivo</string>
     <string name="editor_title_edit">Editar dispositivo</string>
     <string name="editor_subtitle">La lógica Wake-on-LAN queda desacoplada de la UI.</string>
+    <string name="discovery_title">Equipos detectados en la red</string>
+    <string name="discovery_subtitle">Busca candidatos en tu subred actual y toca uno para rellenar el formulario.</string>
+    <string name="discovery_scan">Buscar</string>
+    <string name="discovery_scanning">Buscando equipos visibles en la red local...</string>
+    <string name="discovery_idle">Pulsa buscar para intentar detectar nombres, IPs y MACs visibles en tu red.</string>
+    <string name="discovery_empty">No se han encontrado candidatos útiles en esta búsqueda.</string>
+    <string name="discovery_mac_detected">MAC detectada: %1$s</string>
+    <string name="discovery_mac_missing">MAC no disponible, tendrás que completarla manualmente.</string>
     <string name="editor_help">Asegúrate de que el equipo destino tenga Wake-on-LAN activado en BIOS/UEFI y en el adaptador de red. El broadcast típico es 192.168.1.255 y el puerto habitual es 9.</string>
     <string name="manual_wake_success">Magic packet enviado a %1$s.</string>
     <string name="manual_wake_error">No se pudo despertar %1$s.</string>

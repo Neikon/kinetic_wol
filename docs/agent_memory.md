@@ -51,6 +51,7 @@
 - `shortcuts.xml` con capacidad de App Actions basada en custom intent
 - publicación de shortcuts dinámicos por dispositivo para Assistant/Gemini
 - quick tile de Android con selector rápido para despertar dispositivos guardados
+- borrador de descubrimiento asistido de candidatos de red dentro del formulario de registro
 - Tests unitarios básicos para WOL y normalización
 - Android Studio actualizó la toolchain del proyecto a AGP `9.1.0`, Gradle `9.3.1` y daemon JVM `21`
 - Validado el envío manual de WOL contra un listener Python local

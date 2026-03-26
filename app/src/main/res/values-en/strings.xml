@@ -39,6 +39,14 @@
     <string name="editor_title_new">Register device</string>
     <string name="editor_title_edit">Edit device</string>
     <string name="editor_subtitle">Wake-on-LAN logic stays decoupled from the UI.</string>
+    <string name="discovery_title">Devices detected on the network</string>
+    <string name="discovery_subtitle">Search your current subnet and tap a candidate to prefill the form.</string>
+    <string name="discovery_scan">Scan</string>
+    <string name="discovery_scanning">Scanning visible hosts on the local network...</string>
+    <string name="discovery_idle">Tap scan to try to detect visible names, IPs and MACs on your network.</string>
+    <string name="discovery_empty">No useful candidates were found in this scan.</string>
+    <string name="discovery_mac_detected">MAC detected: %1$s</string>
+    <string name="discovery_mac_missing">MAC unavailable, you will need to fill it manually.</string>
     <string name="editor_help">Make sure the target machine has Wake-on-LAN enabled in BIOS/UEFI and in the network adapter. A typical broadcast is 192.168.1.255 and the usual port is 9.</string>
     <string name="manual_wake_success">Magic packet sent to %1$s.</string>
     <string name="manual_wake_error">Could not wake %1$s.</string>

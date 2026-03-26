@@ -3,6 +3,7 @@ package dev.neikon.kineticwol.ui
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +20,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
@@ -54,8 +56,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.neikon.kineticwol.AppContainer
 import dev.neikon.kineticwol.R
+import dev.neikon.kineticwol.domain.model.DiscoveryCandidate
 import dev.neikon.kineticwol.domain.model.WakeDevice
 import dev.neikon.kineticwol.ui.home.DeviceDraft
+import dev.neikon.kineticwol.ui.home.DiscoveryUiState
 import dev.neikon.kineticwol.ui.home.EventLog
 import dev.neikon.kineticwol.ui.home.HomeUiState
 import dev.neikon.kineticwol.ui.home.HomeViewModel
@@ -85,6 +89,8 @@ fun KineticWolApp(
         onEditDevice = viewModel::openEditDevice,
         onDismissEditor = viewModel::dismissEditor,
         onDraftChange = viewModel::updateDraft,
+        onScanDiscoveryCandidates = viewModel::scanDiscoveryCandidates,
+        onApplyDiscoveryCandidate = viewModel::applyDiscoveryCandidate,
         onSaveDraft = viewModel::saveDraft,
         onDeleteDraft = viewModel::deleteCurrentDevice,
         onWakeDevice = viewModel::wakeDevice,
@@ -100,6 +106,8 @@ private fun KineticWolScaffold(
     onEditDevice: (WakeDevice) -> Unit,
     onDismissEditor: () -> Unit,
     onDraftChange: (DeviceDraft) -> Unit,
+    onScanDiscoveryCandidates: () -> Unit,
+    onApplyDiscoveryCandidate: (DiscoveryCandidate) -> Unit,
     onSaveDraft: () -> Unit,
     onDeleteDraft: () -> Unit,
     onWakeDevice: (WakeDevice) -> Unit,
@@ -147,8 +155,11 @@ private fun KineticWolScaffold(
                 DeviceEditorContent(
                     draft = editor,
                     validationErrors = uiState.validationErrors,
+                    discoveryUiState = uiState.discoveryUiState,
                     onDismiss = onDismissEditor,
                     onDraftChange = onDraftChange,
+                    onScanDiscoveryCandidates = onScanDiscoveryCandidates,
+                    onApplyDiscoveryCandidate = onApplyDiscoveryCandidate,
                     onSave = onSaveDraft,
                     onDelete = onDeleteDraft,
                     modifier = Modifier.padding(innerPadding),
@@ -464,8 +475,11 @@ private fun LogsCard(logs: List<EventLog>) {
 private fun DeviceEditorContent(
     draft: DeviceDraft,
     validationErrors: Map<String, Int>,
+    discoveryUiState: DiscoveryUiState,
     onDismiss: () -> Unit,
     onDraftChange: (DeviceDraft) -> Unit,
+    onScanDiscoveryCandidates: () -> Unit,
+    onApplyDiscoveryCandidate: (DiscoveryCandidate) -> Unit,
     onSave: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
@@ -558,6 +572,12 @@ private fun DeviceEditorContent(
             }
         }
 
+        DiscoveryCandidatesCard(
+            discoveryUiState = discoveryUiState,
+            onScan = onScanDiscoveryCandidates,
+            onApplyCandidate = onApplyDiscoveryCandidate,
+        )
+
         ElevatedCard(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.elevatedCardColors(
@@ -586,6 +606,138 @@ private fun DeviceEditorContent(
             ) {
                 Text(text = stringResource(id = R.string.delete))
             }
+        }
+    }
+}
+
+@Composable
+private fun DiscoveryCandidatesCard(
+    discoveryUiState: DiscoveryUiState,
+    onScan: () -> Unit,
+    onApplyCandidate: (DiscoveryCandidate) -> Unit,
+) {
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        ),
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(id = R.string.discovery_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Text(
+                        text = stringResource(id = R.string.discovery_subtitle),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Button(onClick = onScan, enabled = !discoveryUiState.isScanning) {
+                    if (discoveryUiState.isScanning) {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .width(18.dp)
+                                .height(18.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                        )
+                    } else {
+                        Text(text = stringResource(id = R.string.discovery_scan))
+                    }
+                }
+            }
+
+            when {
+                discoveryUiState.candidates.isNotEmpty() -> {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        discoveryUiState.candidates.forEach { candidate ->
+                            DiscoveryCandidateRow(
+                                candidate = candidate,
+                                onClick = { onApplyCandidate(candidate) },
+                            )
+                        }
+                    }
+                }
+
+                discoveryUiState.isScanning -> {
+                    Text(
+                        text = stringResource(id = R.string.discovery_scanning),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+
+                discoveryUiState.hasSearched -> {
+                    Text(
+                        text = stringResource(id = R.string.discovery_empty),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+
+                else -> {
+                    Text(
+                        text = stringResource(id = R.string.discovery_idle),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DiscoveryCandidateRow(
+    candidate: DiscoveryCandidate,
+    onClick: () -> Unit,
+) {
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth(),
+        onClick = onClick,
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+        ),
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Text(
+                text = candidate.name,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Text(
+                text = candidate.host,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = candidate.macAddress?.let { mac ->
+                    stringResource(id = R.string.discovery_mac_detected, mac)
+                } ?: stringResource(id = R.string.discovery_mac_missing),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outlineVariant,
+                        shape = RoundedCornerShape(12.dp),
+                    )
+                    .padding(horizontal = 10.dp, vertical = 8.dp),
+            )
         }
     }
 }

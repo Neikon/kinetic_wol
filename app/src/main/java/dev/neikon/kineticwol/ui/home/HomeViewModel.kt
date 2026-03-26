@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import dev.neikon.kineticwol.actions.DeviceShortcutPublisher
 import dev.neikon.kineticwol.AppContainer
 import dev.neikon.kineticwol.R
+import dev.neikon.kineticwol.domain.discovery.NetworkDeviceDiscovery
+import dev.neikon.kineticwol.domain.model.DiscoveryCandidate
 import dev.neikon.kineticwol.domain.model.WakeDevice
 import dev.neikon.kineticwol.domain.repository.DeviceRepository
 import dev.neikon.kineticwol.domain.wol.WakeOnLanSender
@@ -26,6 +28,7 @@ class HomeViewModel(
     private val repository: DeviceRepository,
     private val wakeOnLanSender: WakeOnLanSender,
     private val deviceShortcutPublisher: DeviceShortcutPublisher,
+    private val networkDeviceDiscovery: NetworkDeviceDiscovery,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
@@ -47,6 +50,7 @@ class HomeViewModel(
             it.copy(
                 editor = DeviceDraft(),
                 validationErrors = emptyMap(),
+                discoveryUiState = DiscoveryUiState(),
             )
         }
     }
@@ -62,6 +66,7 @@ class HomeViewModel(
                     port = device.port.toString(),
                 ),
                 validationErrors = emptyMap(),
+                discoveryUiState = DiscoveryUiState(),
             )
         }
     }
@@ -71,8 +76,48 @@ class HomeViewModel(
             it.copy(
                 editor = null,
                 validationErrors = emptyMap(),
+                discoveryUiState = DiscoveryUiState(),
             )
         }
+    }
+
+    fun scanDiscoveryCandidates() {
+        _uiState.update { state ->
+            state.copy(
+                discoveryUiState = state.discoveryUiState.copy(
+                    isScanning = true,
+                    hasSearched = true,
+                ),
+            )
+        }
+
+        viewModelScope.launch {
+            val candidates = runCatching {
+                networkDeviceDiscovery.discoverCandidates()
+            }.getOrElse {
+                emptyList()
+            }
+
+            _uiState.update { state ->
+                state.copy(
+                    discoveryUiState = state.discoveryUiState.copy(
+                        isScanning = false,
+                        candidates = candidates,
+                        hasSearched = true,
+                    ),
+                )
+            }
+        }
+    }
+
+    fun applyDiscoveryCandidate(candidate: DiscoveryCandidate) {
+        val currentDraft = uiState.value.editor ?: return
+        val updatedDraft = currentDraft.copy(
+            name = candidate.name,
+            host = candidate.host,
+            macAddress = candidate.macAddress ?: currentDraft.macAddress,
+        )
+        updateDraft(updatedDraft)
     }
 
     fun updateDraft(draft: DeviceDraft) {
@@ -206,6 +251,7 @@ class HomeViewModel(
                         repository = appContainer.deviceRepository,
                         wakeOnLanSender = appContainer.wakeOnLanSender,
                         deviceShortcutPublisher = appContainer.deviceShortcutPublisher,
+                        networkDeviceDiscovery = appContainer.networkDeviceDiscovery,
                     ) as T
             }
     }

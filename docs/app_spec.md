@@ -19,6 +19,7 @@ La app debe permitir:
 - crear un dispositivo
 - editar un dispositivo
 - eliminar un dispositivo
+- ayudar a rellenar el alta mediante candidatos detectados en la red local
 
 Cada dispositivo tendrá como mínimo:
 
@@ -26,6 +27,12 @@ Cada dispositivo tendrá como mínimo:
 - MAC address
 - host o broadcast
 - puerto
+
+El flujo de alta puede incluir ayuda contextual:
+
+- búsqueda manual de candidatos visibles en la red local
+- prefijado de nombre, host y MAC cuando esa información pueda inferirse
+- revisión manual final antes de guardar
 
 ### 3.2 Wake-on-LAN
 
@@ -84,6 +91,7 @@ app/
 - dashboard prioritario
 - feedback claro de éxito y error
 - formularios con validación inmediata
+- descubrimiento asistido dentro del formulario sin sustituir el alta manual
 
 ## 6. Riesgos conocidos
 

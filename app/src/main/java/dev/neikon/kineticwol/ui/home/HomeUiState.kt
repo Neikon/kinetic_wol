@@ -1,6 +1,7 @@
 package dev.neikon.kineticwol.ui.home
 
 import androidx.annotation.StringRes
+import dev.neikon.kineticwol.domain.model.DiscoveryCandidate
 import dev.neikon.kineticwol.domain.model.WakeDevice
 
 data class HomeUiState(
@@ -8,6 +9,7 @@ data class HomeUiState(
     val logs: List<EventLog> = emptyList(),
     val editor: DeviceDraft? = null,
     val validationErrors: Map<String, Int> = emptyMap(),
+    val discoveryUiState: DiscoveryUiState = DiscoveryUiState(),
 )
 
 data class EventLog(
@@ -26,4 +28,10 @@ data class DeviceDraft(
     val macAddress: String = "",
     val host: String = "255.255.255.255",
     val port: String = "9",
+)
+
+data class DiscoveryUiState(
+    val isScanning: Boolean = false,
+    val candidates: List<DiscoveryCandidate> = emptyList(),
+    val hasSearched: Boolean = false,
 )

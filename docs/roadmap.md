@@ -36,6 +36,7 @@
 - [x] Confirmar que los shortcuts dinámicos aparecen en Android
 - [x] Mejorar el [README.md](../README.md)
 - [x] Añadir una quick tile de Android para despertar equipos guardados desde el panel rápido
+- [x] Integrar descubrimiento asistido de candidatos de red en el formulario de registro
 
 ## Checklist en curso
 
