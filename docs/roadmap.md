@@ -47,6 +47,7 @@
 - [x] Añadir diagnóstico de conectividad Android para KineticSOL con logging y validación de `baseUrl`
 - [x] Habilitar cleartext HTTP temporalmente en Android para pruebas LAN del agente Linux
 - [x] Extender la quick tile para ofrecer apagado remoto cuando el dispositivo lo soporte
+- [x] Añadir un icono adaptive propio para la app siguiendo el modelo de Android
 - [x] Añadir pipeline de GitHub Actions para compilar APK y publicar una GitHub Release en cada push a `main`
 
 ## Checklist en curso
