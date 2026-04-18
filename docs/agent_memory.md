@@ -74,6 +74,7 @@
   - validación previa de `baseUrl`
   - separación de host no resoluble, conexión rechazada, timeout, SSL y cleartext
   - `usesCleartextTraffic=true` activado temporalmente para pruebas LAN con `http://`
+- La quick tile de Android ahora abre el picker si un único dispositivo también soporta apagado remoto, y el picker muestra `Apagar` cuando esa capacidad está lista
 
 ## Notas de build actuales
 

@@ -46,6 +46,7 @@
 - [x] Diferenciar errores HTTP y de red del agente en la UI Android
 - [x] Añadir diagnóstico de conectividad Android para KineticSOL con logging y validación de `baseUrl`
 - [x] Habilitar cleartext HTTP temporalmente en Android para pruebas LAN del agente Linux
+- [x] Extender la quick tile para ofrecer apagado remoto cuando el dispositivo lo soporte
 
 ## Checklist en curso
 

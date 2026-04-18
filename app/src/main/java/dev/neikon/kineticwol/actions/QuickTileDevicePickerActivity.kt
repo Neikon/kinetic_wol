@@ -16,12 +16,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -37,6 +40,8 @@ import androidx.lifecycle.lifecycleScope
 import dev.neikon.kineticwol.KineticWolApplication
 import dev.neikon.kineticwol.R
 import dev.neikon.kineticwol.domain.model.WakeDevice
+import dev.neikon.kineticwol.domain.shutdown.AgentPowerOffResult
+import dev.neikon.kineticwol.domain.shutdown.AgentRequestFailure
 import dev.neikon.kineticwol.ui.theme.KineticWolTheme
 import kotlinx.coroutines.launch
 
@@ -56,6 +61,7 @@ class QuickTileDevicePickerActivity : ComponentActivity() {
                     devices = devices,
                     onDismiss = ::finish,
                     onWakeDevice = ::wakeDevice,
+                    onShutdownDevice = ::shutdownDevice,
                 )
             }
         }
@@ -83,6 +89,61 @@ class QuickTileDevicePickerActivity : ComponentActivity() {
             finish()
         }
     }
+
+    private fun shutdownDevice(device: WakeDevice) {
+        lifecycleScope.launch {
+            val result = appContainer.agentShutdownSender.send(device)
+
+            when (result) {
+                is AgentPowerOffResult.Success -> {
+                    Toast.makeText(
+                        this@QuickTileDevicePickerActivity,
+                        getString(R.string.remote_shutdown_success, device.name),
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                }
+
+                is AgentPowerOffResult.Failure -> {
+                    Toast.makeText(
+                        this@QuickTileDevicePickerActivity,
+                        shutdownErrorMessage(device.name, result.error),
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                }
+            }
+
+            finish()
+        }
+    }
+
+    private fun shutdownErrorMessage(
+        deviceName: String,
+        error: AgentRequestFailure,
+    ): String =
+        when (error) {
+            is AgentRequestFailure.InvalidBaseUrl ->
+                getString(R.string.remote_shutdown_invalid_base_url, deviceName)
+            is AgentRequestFailure.HostUnreachable ->
+                getString(R.string.remote_shutdown_host_unreachable, deviceName)
+            is AgentRequestFailure.ConnectionRefused ->
+                getString(R.string.remote_shutdown_connection_refused, deviceName)
+            is AgentRequestFailure.Unauthorized ->
+                getString(R.string.remote_shutdown_invalid_token, deviceName)
+            is AgentRequestFailure.NotFound ->
+                getString(R.string.remote_shutdown_not_found, deviceName)
+            is AgentRequestFailure.BackendUnavailable ->
+                getString(R.string.remote_shutdown_backend_unavailable)
+            is AgentRequestFailure.Timeout ->
+                getString(R.string.remote_shutdown_timeout, deviceName)
+            is AgentRequestFailure.CleartextBlocked ->
+                getString(R.string.remote_shutdown_cleartext_blocked, deviceName)
+            is AgentRequestFailure.Ssl ->
+                getString(R.string.remote_shutdown_ssl_error, deviceName)
+            is AgentRequestFailure.Network ->
+                getString(R.string.remote_shutdown_network_error, deviceName)
+            is AgentRequestFailure.Unknown ->
+                getString(R.string.remote_shutdown_error, deviceName)
+        }
 }
 
 @Composable
@@ -90,6 +151,7 @@ private fun QuickTileDevicePickerScreen(
     devices: List<WakeDevice>,
     onDismiss: () -> Unit,
     onWakeDevice: (WakeDevice) -> Unit,
+    onShutdownDevice: (WakeDevice) -> Unit,
 ) {
     Box(
         modifier = Modifier
@@ -148,6 +210,7 @@ private fun QuickTileDevicePickerScreen(
                             QuickTileDeviceRow(
                                 device = device,
                                 onWakeDevice = { onWakeDevice(device) },
+                                onShutdownDevice = { onShutdownDevice(device) },
                             )
                         }
                     }
@@ -161,10 +224,10 @@ private fun QuickTileDevicePickerScreen(
 private fun QuickTileDeviceRow(
     device: WakeDevice,
     onWakeDevice: () -> Unit,
+    onShutdownDevice: () -> Unit,
 ) {
     ElevatedCard(
         modifier = Modifier.fillMaxWidth(),
-        onClick = onWakeDevice,
         colors = CardDefaults.elevatedCardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
         ),
@@ -183,12 +246,25 @@ private fun QuickTileDeviceRow(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(
-                text = stringResource(id = R.string.quick_tile_picker_action),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary,
-            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Button(
+                    onClick = onWakeDevice,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text(text = stringResource(id = R.string.wake))
+                }
+                if (device.remoteShutdown.isReady) {
+                    OutlinedButton(
+                        onClick = onShutdownDevice,
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text(text = stringResource(id = R.string.shutdown))
+                    }
+                } else {
+                    Spacer(modifier = Modifier.width(0.dp).weight(1f))
+                }
+            }
         }
     }
 }
