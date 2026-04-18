@@ -351,6 +351,10 @@ class HomeViewModel(
 
     private fun statusFailureMessage(error: AgentRequestFailure): UiMessage =
         when (error) {
+            is AgentRequestFailure.InvalidBaseUrl -> UiMessage(R.string.agent_status_invalid_base_url)
+            is AgentRequestFailure.HostUnreachable -> UiMessage(R.string.agent_status_host_unreachable)
+            is AgentRequestFailure.ConnectionRefused ->
+                UiMessage(R.string.agent_status_connection_refused)
             is AgentRequestFailure.Unauthorized -> UiMessage(R.string.agent_status_invalid_token)
             is AgentRequestFailure.NotFound -> UiMessage(R.string.agent_status_not_found)
             is AgentRequestFailure.BackendUnavailable ->
@@ -359,6 +363,8 @@ class HomeViewModel(
                     listOf(error.message.orEmpty()),
                 )
             is AgentRequestFailure.Timeout -> UiMessage(R.string.agent_status_timeout)
+            is AgentRequestFailure.CleartextBlocked -> UiMessage(R.string.agent_status_cleartext_blocked)
+            is AgentRequestFailure.Ssl -> UiMessage(R.string.agent_status_ssl_error)
             is AgentRequestFailure.Network -> UiMessage(R.string.agent_status_network_error)
             is AgentRequestFailure.Unknown -> UiMessage(R.string.agent_status_unexpected_error)
         }
@@ -368,6 +374,12 @@ class HomeViewModel(
         error: AgentRequestFailure,
     ): UiMessage =
         when (error) {
+            is AgentRequestFailure.InvalidBaseUrl ->
+                UiMessage(R.string.remote_shutdown_invalid_base_url, listOf(deviceName))
+            is AgentRequestFailure.HostUnreachable ->
+                UiMessage(R.string.remote_shutdown_host_unreachable, listOf(deviceName))
+            is AgentRequestFailure.ConnectionRefused ->
+                UiMessage(R.string.remote_shutdown_connection_refused, listOf(deviceName))
             is AgentRequestFailure.Unauthorized ->
                 UiMessage(R.string.remote_shutdown_invalid_token, listOf(deviceName))
             is AgentRequestFailure.NotFound ->
@@ -376,6 +388,10 @@ class HomeViewModel(
                 UiMessage(R.string.remote_shutdown_backend_unavailable)
             is AgentRequestFailure.Timeout ->
                 UiMessage(R.string.remote_shutdown_timeout, listOf(deviceName))
+            is AgentRequestFailure.CleartextBlocked ->
+                UiMessage(R.string.remote_shutdown_cleartext_blocked, listOf(deviceName))
+            is AgentRequestFailure.Ssl ->
+                UiMessage(R.string.remote_shutdown_ssl_error, listOf(deviceName))
             is AgentRequestFailure.Network ->
                 UiMessage(R.string.remote_shutdown_network_error, listOf(deviceName))
             is AgentRequestFailure.Unknown ->

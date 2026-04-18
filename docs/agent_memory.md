@@ -69,6 +69,11 @@
   - Bearer token obligatorio
   - flujo de `Probar conexión`
   - mapeo específico de `401`, `404`, `503`, timeout y error de red
+- Ajustado el cliente Android para diagnosticar mejor fallos de conectividad con KineticSOL:
+  - logging explícito de URL, método, código HTTP y excepción real
+  - validación previa de `baseUrl`
+  - separación de host no resoluble, conexión rechazada, timeout, SSL y cleartext
+  - `usesCleartextTraffic=true` activado temporalmente para pruebas LAN con `http://`
 
 ## Notas de build actuales
 

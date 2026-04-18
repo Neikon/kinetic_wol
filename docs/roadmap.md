@@ -44,6 +44,8 @@
 - [x] Alinear Android con las rutas canónicas `/api/v1/status` y `/api/v1/poweroff` de KineticSOL
 - [x] Añadir flujo `Probar conexión` para el agente Linux
 - [x] Diferenciar errores HTTP y de red del agente en la UI Android
+- [x] Añadir diagnóstico de conectividad Android para KineticSOL con logging y validación de `baseUrl`
+- [x] Habilitar cleartext HTTP temporalmente en Android para pruebas LAN del agente Linux
 
 ## Checklist en curso
 
