@@ -23,6 +23,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -30,6 +31,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -48,6 +50,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -89,6 +92,7 @@ fun KineticWolApp(
         onSaveDraft = viewModel::saveDraft,
         onDeleteDraft = viewModel::deleteCurrentDevice,
         onWakeDevice = viewModel::wakeDevice,
+        onShutdownDevice = viewModel::shutdownDevice,
     )
 }
 
@@ -105,6 +109,7 @@ private fun KineticWolScaffold(
     onSaveDraft: () -> Unit,
     onDeleteDraft: () -> Unit,
     onWakeDevice: (WakeDevice) -> Unit,
+    onShutdownDevice: (WakeDevice) -> Unit,
 ) {
     BackHandler(enabled = uiState.editor != null) {
         onDismissEditor()
@@ -143,6 +148,7 @@ private fun KineticWolScaffold(
                     onDismissHeroCard = onDismissHeroCard,
                     onEditDevice = onEditDevice,
                     onWakeDevice = onWakeDevice,
+                    onShutdownDevice = onShutdownDevice,
                     modifier = Modifier.padding(innerPadding),
                 )
             } else {
@@ -168,6 +174,7 @@ private fun DashboardContent(
     onDismissHeroCard: () -> Unit,
     onEditDevice: (WakeDevice) -> Unit,
     onWakeDevice: (WakeDevice) -> Unit,
+    onShutdownDevice: (WakeDevice) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -198,6 +205,7 @@ private fun DashboardContent(
                     device = device,
                     onEdit = { onEditDevice(device) },
                     onWake = { onWakeDevice(device) },
+                    onShutdown = { onShutdownDevice(device) },
                 )
             }
         }
@@ -364,6 +372,7 @@ private fun DeviceCard(
     device: WakeDevice,
     onEdit: () -> Unit,
     onWake: () -> Unit,
+    onShutdown: () -> Unit,
 ) {
     ElevatedCard(
         modifier = Modifier.fillMaxWidth(),
@@ -424,6 +433,15 @@ private fun DeviceCard(
                     modifier = Modifier.weight(1f),
                 ) {
                     Text(text = stringResource(id = R.string.wake))
+                }
+            }
+
+            if (device.remoteShutdown.isReady) {
+                FilledTonalButton(
+                    onClick = onShutdown,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(text = stringResource(id = R.string.shutdown))
                 }
             }
         }
@@ -577,6 +595,73 @@ private fun DeviceEditorContent(
         ElevatedCard(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.elevatedCardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+            ),
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(id = R.string.shutdown_section_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Text(
+                            text = stringResource(id = R.string.shutdown_section_body),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Switch(
+                        checked = draft.shutdownEnabled,
+                        onCheckedChange = { enabled ->
+                            onDraftChange(draft.copy(shutdownEnabled = enabled))
+                        },
+                    )
+                }
+
+                if (draft.shutdownEnabled) {
+                    Text(
+                        text = stringResource(id = R.string.shutdown_method_agent_only),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    DraftTextField(
+                        label = stringResource(id = R.string.agent_base_url_label),
+                        value = draft.agentBaseUrl,
+                        error = validationErrors["agentBaseUrl"],
+                        placeholder = stringResource(id = R.string.agent_base_url_hint),
+                        keyboardType = KeyboardType.Uri,
+                        capitalization = KeyboardCapitalization.None,
+                        imeAction = ImeAction.Next,
+                        onValueChange = { onDraftChange(draft.copy(agentBaseUrl = it)) },
+                    )
+                    DraftTextField(
+                        label = stringResource(id = R.string.agent_auth_token_label),
+                        value = draft.agentAuthToken,
+                        error = validationErrors["agentAuthToken"],
+                        placeholder = stringResource(id = R.string.agent_auth_token_hint),
+                        keyboardType = KeyboardType.Password,
+                        capitalization = KeyboardCapitalization.None,
+                        imeAction = ImeAction.Done,
+                        visualTransformation = PasswordVisualTransformation(),
+                        onValueChange = { onDraftChange(draft.copy(agentAuthToken = it)) },
+                    )
+                }
+            }
+        }
+
+        ElevatedCard(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.elevatedCardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
             ),
         ) {
@@ -615,6 +700,7 @@ private fun DraftTextField(
     keyboardType: KeyboardType,
     capitalization: KeyboardCapitalization,
     imeAction: ImeAction,
+    visualTransformation: androidx.compose.ui.text.input.VisualTransformation = androidx.compose.ui.text.input.VisualTransformation.None,
     onValueChange: (String) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -626,6 +712,7 @@ private fun DraftTextField(
             isError = error != null,
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
+            visualTransformation = visualTransformation,
             keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
                 keyboardType = keyboardType,
                 capitalization = capitalization,

@@ -15,6 +15,9 @@
 - Compatibilidad solo con `Android 16+`
 - Idiomas: español base, inglés secundario
 - `applicationId`: `dev.neikon.kineticwol`
+- El modelo de dispositivo se amplía para soportar capacidades adicionales además de Wake-on-LAN
+- La primera ruta de apagado remoto será un agente Linux HTTP autenticado por token
+- SSH queda planificado para una segunda fase, pero la arquitectura de `remoteShutdown` ya contempla ambos métodos
 
 ## Contexto funcional
 
@@ -57,12 +60,16 @@
 - Validado el envío manual de WOL contra un listener Python local
 - Validado el fulfillment headless mediante `adb` resolviendo dispositivos guardados por nombre
 - Mejorada la UX del formulario con validación de nombres duplicados, limpieza selectiva de errores y teclados específicos por campo
+- Primera implementación de apagado remoto por agente Linux en la app Android
+- Migración de `Room` a versión 2 para persistir configuración del agente de apagado remoto
+- UI de edición extendida con sección de apagado remoto por agente y acción `Apagar` en tarjetas compatibles
 
 ## Notas de build actuales
 
 - La rama de limpieza migra la build a `built-in Kotlin` de AGP 9
 - Los flags heredados de compatibilidad añadidos por Android Studio se han eliminado para reducir warnings y deuda técnica
 - La build `assembleDebug` compila correctamente en el entorno Android Studio del usuario tras la limpieza inicial
+- El repositorio sigue sin incluir `gradlew`, así que desde esta sesión no se puede ejecutar la build localmente aunque haya tests unitarios añadidos
 
 ## Preparacion de release
 

@@ -6,4 +6,5 @@ data class WakeDevice(
     val macAddress: String,
     val host: String,
     val port: Int = 9,
+    val remoteShutdown: RemoteShutdownConfig = RemoteShutdownConfig(),
 )

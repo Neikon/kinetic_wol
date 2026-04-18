@@ -3,11 +3,15 @@ package dev.neikon.kineticwol.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import dev.neikon.kineticwol.actions.DeviceShortcutPublisher
 import dev.neikon.kineticwol.AppContainer
 import dev.neikon.kineticwol.R
+import dev.neikon.kineticwol.actions.DeviceShortcutPublisher
+import dev.neikon.kineticwol.domain.model.AgentShutdownConfig
+import dev.neikon.kineticwol.domain.model.RemoteShutdownConfig
+import dev.neikon.kineticwol.domain.model.RemoteShutdownMethod
 import dev.neikon.kineticwol.domain.model.WakeDevice
 import dev.neikon.kineticwol.domain.repository.DeviceRepository
+import dev.neikon.kineticwol.domain.shutdown.AgentShutdownSender
 import dev.neikon.kineticwol.domain.wol.WakeOnLanSender
 import dev.neikon.kineticwol.util.normalizeDeviceName
 import java.time.LocalTime
@@ -25,6 +29,7 @@ import kotlinx.coroutines.launch
 class HomeViewModel(
     private val repository: DeviceRepository,
     private val wakeOnLanSender: WakeOnLanSender,
+    private val agentShutdownSender: AgentShutdownSender,
     private val deviceShortcutPublisher: DeviceShortcutPublisher,
     private val homeScreenPreferences: HomeScreenPreferences,
 ) : ViewModel() {
@@ -65,6 +70,10 @@ class HomeViewModel(
                     macAddress = device.macAddress,
                     host = device.host,
                     port = device.port.toString(),
+                    shutdownEnabled = device.remoteShutdown.enabled,
+                    shutdownMethod = device.remoteShutdown.method,
+                    agentBaseUrl = device.remoteShutdown.agent?.baseUrl.orEmpty(),
+                    agentAuthToken = device.remoteShutdown.agent?.authToken.orEmpty(),
                 ),
                 validationErrors = emptyMap(),
             )
@@ -106,6 +115,20 @@ class HomeViewModel(
             macAddress = draft.macAddress.trim(),
             host = draft.host.trim(),
             port = draft.port.toInt(),
+            remoteShutdown =
+                RemoteShutdownConfig(
+                    enabled = draft.shutdownEnabled,
+                    method = draft.shutdownMethod,
+                    agent =
+                        if (draft.shutdownEnabled) {
+                            AgentShutdownConfig(
+                                baseUrl = draft.agentBaseUrl.trim(),
+                                authToken = draft.agentAuthToken.trim(),
+                            )
+                        } else {
+                            null
+                        },
+                ),
         )
 
         viewModelScope.launch {
@@ -144,6 +167,24 @@ class HomeViewModel(
         }
     }
 
+    fun shutdownDevice(device: WakeDevice) {
+        viewModelScope.launch {
+            runCatching {
+                when (device.remoteShutdown.method) {
+                    RemoteShutdownMethod.AGENT -> agentShutdownSender.send(device)
+                    RemoteShutdownMethod.SSH ->
+                        error("SSH shutdown is not implemented yet.")
+                }
+            }.onSuccess {
+                log(UiMessage(R.string.remote_shutdown_success, listOf(device.name)))
+                _messages.emit(UiMessage(R.string.remote_shutdown_success, listOf(device.name)))
+            }.onFailure {
+                log(UiMessage(R.string.remote_shutdown_error, listOf(device.name)))
+                _messages.emit(UiMessage(R.string.remote_shutdown_error, listOf(device.name)))
+            }
+        }
+    }
+
     fun dismissHeroCard() {
         homeScreenPreferences.setHeroCardDismissed(true)
         _uiState.update { state -> state.copy(isHeroCardVisible = false) }
@@ -177,6 +218,15 @@ class HomeViewModel(
                 errors["macAddress"] = R.string.validation_mac
             }
 
+        if (draft.shutdownEnabled && draft.shutdownMethod == RemoteShutdownMethod.AGENT) {
+            if (draft.agentBaseUrl.isBlank()) {
+                errors["agentBaseUrl"] = R.string.validation_agent_base_url
+            }
+            if (draft.agentAuthToken.isBlank()) {
+                errors["agentAuthToken"] = R.string.validation_agent_auth_token
+            }
+        }
+
         return errors
     }
 
@@ -201,6 +251,14 @@ class HomeViewModel(
         if (previous.macAddress != current.macAddress) changed += "macAddress"
         if (previous.host != current.host) changed += "host"
         if (previous.port != current.port) changed += "port"
+        if (previous.shutdownEnabled != current.shutdownEnabled) {
+            changed += "shutdownEnabled"
+            changed += "agentBaseUrl"
+            changed += "agentAuthToken"
+        }
+        if (previous.shutdownMethod != current.shutdownMethod) changed += "shutdownMethod"
+        if (previous.agentBaseUrl != current.agentBaseUrl) changed += "agentBaseUrl"
+        if (previous.agentAuthToken != current.agentAuthToken) changed += "agentAuthToken"
         return changed
     }
 
@@ -215,6 +273,7 @@ class HomeViewModel(
                     HomeViewModel(
                         repository = appContainer.deviceRepository,
                         wakeOnLanSender = appContainer.wakeOnLanSender,
+                        agentShutdownSender = appContainer.agentShutdownSender,
                         deviceShortcutPublisher = appContainer.deviceShortcutPublisher,
                         homeScreenPreferences = appContainer.homeScreenPreferences,
                     ) as T

@@ -27,6 +27,11 @@ Cada dispositivo tendrá como mínimo:
 - host o broadcast
 - puerto
 
+Además, podrá incluir capacidades opcionales de control remoto:
+
+- apagado remoto por agente Linux HTTP autenticado por token
+- apagado remoto por SSH en una fase posterior
+
 ### 3.2 Wake-on-LAN
 
 La app debe:
@@ -37,7 +42,23 @@ La app debe:
 - permitir envío manual desde la UI
 - permitir envío headless desde un intent de voz
 
-### 3.3 App Actions
+### 3.3 Apagado remoto
+
+La app debe preparar un modelo extensible para acciones remotas adicionales por dispositivo.
+
+Primera fase:
+
+- activar o desactivar apagado remoto por dispositivo
+- configurar un agente Linux mediante URL base y token
+- enviar una petición HTTP autenticada al endpoint de apagado del agente
+- mostrar la acción `Apagar` solo cuando la configuración esté lista
+
+Fases posteriores previstas:
+
+- apagado remoto por SSH
+- otras acciones de energía si aportan valor real
+
+### 3.4 App Actions
 
 La app debe incluir:
 
@@ -51,7 +72,7 @@ Estado deseado:
 
 - soporte práctico para invocación desde Gemini en Android mediante la infraestructura oficial disponible para App Actions
 
-### 3.4 Internacionalización
+### 3.5 Internacionalización
 
 - idioma base: español
 - idioma secundario: inglés
@@ -73,6 +94,7 @@ app/
 ### 4.1 Capas
 
 - `domain`: modelos y lógica WOL
+- `domain`: modelos y lógica WOL y de apagado remoto
 - `data`: Room y repositorio
 - `ui`: Compose, estado de pantalla y tema
 - `actions`: fulfillment headless para App Actions

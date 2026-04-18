@@ -37,14 +37,20 @@
 - [x] Mejorar el [README.md](../README.md)
 - [x] Añadir una quick tile de Android para despertar equipos guardados desde el panel rápido
 - [x] Permitir descartar de forma persistente el bloque hero del dashboard
+- [x] Extender el modelo de dispositivo para soportar apagado remoto por agente Linux
+- [x] Añadir migración Room para persistir configuración del agente de apagado remoto
+- [x] Añadir sección de apagado remoto en el editor de dispositivos
+- [x] Añadir acción manual `Apagar` para dispositivos con agente configurado
 
 ## Checklist en curso
 
+- [ ] Validar end-to-end la integración con el agente Linux del otro repositorio
 - [ ] Revisar y endurecer App Actions sobre la base ya validada
 - [ ] Reducir warnings y complejidad de Gradle sin perder compatibilidad de build
 
 ## Checklist pendiente
 
+- [ ] Implementar apagado remoto por SSH
 - [ ] Validar envío WOL en dispositivo real y red local
 - [ ] Comprobar invocación real desde Assistant/Gemini mediante surfaces disponibles o `internal testing release`
 - [ ] Seguir endureciendo shortcuts dinámicos y flujo de fulfillment por voz
@@ -54,5 +60,6 @@
 ## Riesgos abiertos
 
 - [ ] Falta de toolchain local en esta sesión para compilar desde terminal
+- [ ] El token del agente se persiste por ahora en `Room`; si la feature madura, habrá que moverlo a almacenamiento más seguro
 - [ ] El `App Actions test tool` no está disponible en el Android Studio del usuario pese a que la documentación oficial todavía lo menciona
 - [ ] Posible limitación de locale para voz en español
