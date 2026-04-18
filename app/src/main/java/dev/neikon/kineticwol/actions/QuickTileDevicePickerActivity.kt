@@ -34,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -175,10 +176,12 @@ private fun QuickTileDevicePickerScreen(
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Top,
                 ) {
-                    Column {
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
                         Text(
                             text = stringResource(id = R.string.quick_tile_picker_title),
                             style = MaterialTheme.typography.titleLarge,
@@ -188,10 +191,21 @@ private fun QuickTileDevicePickerScreen(
                             text = stringResource(id = R.string.quick_tile_picker_subtitle),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
                         )
                     }
-                    TextButton(onClick = onDismiss) {
-                        Text(text = stringResource(id = R.string.cancel))
+                    Spacer(modifier = Modifier.width(12.dp))
+                    TextButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.align(Alignment.Top),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.cancel),
+                            maxLines = 1,
+                            softWrap = false,
+                        )
                     }
                 }
 
