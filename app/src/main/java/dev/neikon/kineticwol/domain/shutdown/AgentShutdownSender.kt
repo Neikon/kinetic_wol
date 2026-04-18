@@ -5,9 +5,11 @@ import dev.neikon.kineticwol.domain.model.AgentShutdownConfig
 import dev.neikon.kineticwol.domain.model.RemoteShutdownMethod
 import dev.neikon.kineticwol.domain.model.WakeDevice
 import java.io.IOException
+import java.io.EOFException
 import java.net.ConnectException
 import java.net.HttpURLConnection
 import java.net.MalformedURLException
+import java.net.SocketException
 import java.net.SocketTimeoutException
 import java.net.URI
 import java.net.URISyntaxException
@@ -126,7 +128,11 @@ class AgentShutdownSender {
                     }
                 },
                 onFailure = { throwable ->
-                    AgentPowerOffResult.Failure(throwable.toFailure())
+                    if (throwable is RequestCompletedWithoutResponseException) {
+                        AgentPowerOffResult.Success(throwable.message.orEmpty())
+                    } else {
+                        AgentPowerOffResult.Failure(throwable.toFailure())
+                    }
                 },
             )
         }
@@ -182,6 +188,7 @@ class AgentShutdownSender {
         body: String?,
     ): HttpResponse {
         Log.d(TAG, "HTTP $method $url")
+        var requestBodySent = false
         val connection = (URL(url).openConnection() as HttpURLConnection).apply {
             requestMethod = method
             connectTimeout = TIMEOUT_MS
@@ -199,6 +206,7 @@ class AgentShutdownSender {
                 connection.outputStream.use { output ->
                     output.write(body.encodeToByteArray())
                 }
+                requestBodySent = true
             }
 
             val responseCode = connection.responseCode
@@ -214,6 +222,13 @@ class AgentShutdownSender {
                 "HTTP $method $url failed with ${error::class.java.name}: ${error.message}",
                 error,
             )
+            if (body != null && requestBodySent && error.isLikelyConnectionClosedAfterPowerOff()) {
+                Log.w(
+                    TAG,
+                    "HTTP $method $url closed after request body was sent; treating poweroff as accepted.",
+                )
+                throw RequestCompletedWithoutResponseException(error)
+            }
             throw error
         } finally {
             connection.disconnect()
@@ -260,6 +275,18 @@ class AgentShutdownSender {
             else -> AgentRequestFailure.Unknown(message)
         }
 
+    private fun Throwable.isLikelyConnectionClosedAfterPowerOff(): Boolean {
+        if (this is EOFException) return true
+        if (this is ConnectException) return false
+        if (this !is SocketException) return false
+
+        val normalizedMessage = message.orEmpty()
+        return normalizedMessage.contains("reset", ignoreCase = true) ||
+            normalizedMessage.contains("broken pipe", ignoreCase = true) ||
+            normalizedMessage.contains("socket closed", ignoreCase = true) ||
+            normalizedMessage.contains("connection abort", ignoreCase = true)
+    }
+
     private fun String.toJsonObject(): JSONObject =
         if (isBlank()) {
             JSONObject()
@@ -274,6 +301,10 @@ class AgentShutdownSender {
         val code: Int,
         val body: String,
     )
+
+    private class RequestCompletedWithoutResponseException(
+        cause: Throwable,
+    ) : IOException(cause.message, cause)
 
     companion object {
         private const val TAG = "AgentShutdownSender"
