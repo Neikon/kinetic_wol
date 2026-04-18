@@ -75,6 +75,7 @@
   - separación de host no resoluble, conexión rechazada, timeout, SSL y cleartext
   - `usesCleartextTraffic=true` activado temporalmente para pruebas LAN con `http://`
 - La quick tile de Android ahora abre el picker si un único dispositivo también soporta apagado remoto, y el picker muestra `Apagar` cuando esa capacidad está lista
+- Se añadió un workflow de GitHub Actions para compilar `:app:assembleDebug`, adjuntar el APK como artifact y publicar una GitHub Release en cada push a `main`
 
 ## Notas de build actuales
 
