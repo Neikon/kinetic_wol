@@ -63,6 +63,12 @@
 - Primera implementación de apagado remoto por agente Linux en la app Android
 - Migración de `Room` a versión 2 para persistir configuración del agente de apagado remoto
 - UI de edición extendida con sección de apagado remoto por agente y acción `Apagar` en tarjetas compatibles
+- Integración Android alineada con el contrato HTTP actual de KineticSOL:
+  - `GET /api/v1/status`
+  - `POST /api/v1/poweroff`
+  - Bearer token obligatorio
+  - flujo de `Probar conexión`
+  - mapeo específico de `401`, `404`, `503`, timeout y error de red
 
 ## Notas de build actuales
 

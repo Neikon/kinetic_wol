@@ -11,6 +11,9 @@ import dev.neikon.kineticwol.domain.model.RemoteShutdownConfig
 import dev.neikon.kineticwol.domain.model.RemoteShutdownMethod
 import dev.neikon.kineticwol.domain.model.WakeDevice
 import dev.neikon.kineticwol.domain.repository.DeviceRepository
+import dev.neikon.kineticwol.domain.shutdown.AgentPowerOffResult
+import dev.neikon.kineticwol.domain.shutdown.AgentRequestFailure
+import dev.neikon.kineticwol.domain.shutdown.AgentStatusResult
 import dev.neikon.kineticwol.domain.shutdown.AgentShutdownSender
 import dev.neikon.kineticwol.domain.wol.WakeOnLanSender
 import dev.neikon.kineticwol.util.normalizeDeviceName
@@ -169,19 +172,74 @@ class HomeViewModel(
 
     fun shutdownDevice(device: WakeDevice) {
         viewModelScope.launch {
-            runCatching {
+            val result =
                 when (device.remoteShutdown.method) {
                     RemoteShutdownMethod.AGENT -> agentShutdownSender.send(device)
                     RemoteShutdownMethod.SSH ->
-                        error("SSH shutdown is not implemented yet.")
+                        AgentPowerOffResult.Failure(
+                            AgentRequestFailure.Unknown("SSH shutdown is not implemented yet."),
+                        )
                 }
-            }.onSuccess {
-                log(UiMessage(R.string.remote_shutdown_success, listOf(device.name)))
-                _messages.emit(UiMessage(R.string.remote_shutdown_success, listOf(device.name)))
-            }.onFailure {
-                log(UiMessage(R.string.remote_shutdown_error, listOf(device.name)))
-                _messages.emit(UiMessage(R.string.remote_shutdown_error, listOf(device.name)))
+
+            when (result) {
+                is AgentPowerOffResult.Success -> {
+                    log(UiMessage(R.string.remote_shutdown_success, listOf(device.name)))
+                    _messages.emit(UiMessage(R.string.remote_shutdown_success, listOf(device.name)))
+                }
+
+                is AgentPowerOffResult.Failure -> {
+                    val message = powerOffFailureMessage(device.name, result.error)
+                    log(message)
+                    _messages.emit(message)
+                }
             }
+        }
+    }
+
+    fun testAgentConnection() {
+        val draft = uiState.value.editor ?: return
+        val validationErrors = validateAgentConnectionDraft(draft)
+
+        if (validationErrors.isNotEmpty()) {
+            _uiState.update {
+                it.copy(
+                    validationErrors = it.validationErrors + validationErrors,
+                )
+            }
+            return
+        }
+
+        val config =
+            AgentShutdownConfig(
+                baseUrl = draft.agentBaseUrl.trim(),
+                authToken = draft.agentAuthToken.trim(),
+            )
+
+        viewModelScope.launch {
+            _uiState.update { state -> state.copy(isTestingAgentConnection = true) }
+            val result = agentShutdownSender.checkStatus(config)
+            _uiState.update { state -> state.copy(isTestingAgentConnection = false) }
+
+            val message =
+                when (result) {
+                    is AgentStatusResult.Success -> {
+                        if (result.data.canPowerOff.equals("yes", ignoreCase = true)) {
+                            UiMessage(
+                                R.string.agent_status_ready,
+                                listOf(result.data.message.ifBlank { result.data.canPowerOff }),
+                            )
+                        } else {
+                            UiMessage(
+                                R.string.agent_status_not_ready,
+                                listOf(result.data.message.ifBlank { result.data.canPowerOff }),
+                            )
+                        }
+                    }
+
+                    is AgentStatusResult.Failure -> statusFailureMessage(result.error)
+                }
+
+            _messages.emit(message)
         }
     }
 
@@ -227,6 +285,17 @@ class HomeViewModel(
             }
         }
 
+        return errors
+    }
+
+    private fun validateAgentConnectionDraft(draft: DeviceDraft): Map<String, Int> {
+        val errors = mutableMapOf<String, Int>()
+        if (draft.agentBaseUrl.isBlank()) {
+            errors["agentBaseUrl"] = R.string.validation_agent_base_url
+        }
+        if (draft.agentAuthToken.isBlank()) {
+            errors["agentAuthToken"] = R.string.validation_agent_auth_token
+        }
         return errors
     }
 
@@ -279,4 +348,37 @@ class HomeViewModel(
                     ) as T
             }
     }
+
+    private fun statusFailureMessage(error: AgentRequestFailure): UiMessage =
+        when (error) {
+            is AgentRequestFailure.Unauthorized -> UiMessage(R.string.agent_status_invalid_token)
+            is AgentRequestFailure.NotFound -> UiMessage(R.string.agent_status_not_found)
+            is AgentRequestFailure.BackendUnavailable ->
+                UiMessage(
+                    R.string.agent_status_backend_unavailable,
+                    listOf(error.message.orEmpty()),
+                )
+            is AgentRequestFailure.Timeout -> UiMessage(R.string.agent_status_timeout)
+            is AgentRequestFailure.Network -> UiMessage(R.string.agent_status_network_error)
+            is AgentRequestFailure.Unknown -> UiMessage(R.string.agent_status_unexpected_error)
+        }
+
+    private fun powerOffFailureMessage(
+        deviceName: String,
+        error: AgentRequestFailure,
+    ): UiMessage =
+        when (error) {
+            is AgentRequestFailure.Unauthorized ->
+                UiMessage(R.string.remote_shutdown_invalid_token, listOf(deviceName))
+            is AgentRequestFailure.NotFound ->
+                UiMessage(R.string.remote_shutdown_not_found, listOf(deviceName))
+            is AgentRequestFailure.BackendUnavailable ->
+                UiMessage(R.string.remote_shutdown_backend_unavailable)
+            is AgentRequestFailure.Timeout ->
+                UiMessage(R.string.remote_shutdown_timeout, listOf(deviceName))
+            is AgentRequestFailure.Network ->
+                UiMessage(R.string.remote_shutdown_network_error, listOf(deviceName))
+            is AgentRequestFailure.Unknown ->
+                UiMessage(R.string.remote_shutdown_error, listOf(deviceName))
+        }
 }

@@ -50,6 +50,7 @@ Primera fase:
 
 - activar o desactivar apagado remoto por dispositivo
 - configurar un agente Linux mediante URL base y token
+- verificar conectividad y disponibilidad del backend con `GET /api/v1/status`
 - enviar una petición HTTP autenticada al endpoint de apagado del agente
 - mostrar la acción `Apagar` solo cuando la configuración esté lista
 
@@ -57,6 +58,13 @@ Fases posteriores previstas:
 
 - apagado remoto por SSH
 - otras acciones de energía si aportan valor real
+
+Contrato mínimo actual del agente Linux:
+
+- `GET /api/v1/status`
+- `POST /api/v1/poweroff`
+- `Authorization: Bearer <token>`
+- diferenciación de errores útil en UI para token inválido, ruta incorrecta, backend no disponible y problemas de red
 
 ### 3.4 App Actions
 

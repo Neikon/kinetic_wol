@@ -10,6 +10,7 @@ data class HomeUiState(
     val editor: DeviceDraft? = null,
     val validationErrors: Map<String, Int> = emptyMap(),
     val isHeroCardVisible: Boolean = true,
+    val isTestingAgentConnection: Boolean = false,
 )
 
 data class EventLog(

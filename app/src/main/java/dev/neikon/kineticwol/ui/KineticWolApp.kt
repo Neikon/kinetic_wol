@@ -93,6 +93,7 @@ fun KineticWolApp(
         onDeleteDraft = viewModel::deleteCurrentDevice,
         onWakeDevice = viewModel::wakeDevice,
         onShutdownDevice = viewModel::shutdownDevice,
+        onTestAgentConnection = viewModel::testAgentConnection,
     )
 }
 
@@ -110,6 +111,7 @@ private fun KineticWolScaffold(
     onDeleteDraft: () -> Unit,
     onWakeDevice: (WakeDevice) -> Unit,
     onShutdownDevice: (WakeDevice) -> Unit,
+    onTestAgentConnection: () -> Unit,
 ) {
     BackHandler(enabled = uiState.editor != null) {
         onDismissEditor()
@@ -155,9 +157,11 @@ private fun KineticWolScaffold(
                 val editor = uiState.editor ?: return@Crossfade
                 DeviceEditorContent(
                     draft = editor,
+                    isTestingAgentConnection = uiState.isTestingAgentConnection,
                     validationErrors = uiState.validationErrors,
                     onDismiss = onDismissEditor,
                     onDraftChange = onDraftChange,
+                    onTestAgentConnection = onTestAgentConnection,
                     onSave = onSaveDraft,
                     onDelete = onDeleteDraft,
                     modifier = Modifier.padding(innerPadding),
@@ -497,9 +501,11 @@ private fun LogsCard(logs: List<EventLog>) {
 @Composable
 private fun DeviceEditorContent(
     draft: DeviceDraft,
+    isTestingAgentConnection: Boolean,
     validationErrors: Map<String, Int>,
     onDismiss: () -> Unit,
     onDraftChange: (DeviceDraft) -> Unit,
+    onTestAgentConnection: () -> Unit,
     onSave: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
@@ -655,6 +661,13 @@ private fun DeviceEditorContent(
                         visualTransformation = PasswordVisualTransformation(),
                         onValueChange = { onDraftChange(draft.copy(agentAuthToken = it)) },
                     )
+                    OutlinedButton(
+                        onClick = onTestAgentConnection,
+                        enabled = !isTestingAgentConnection,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(text = stringResource(id = R.string.test_agent_connection))
+                    }
                 }
             }
         }

@@ -41,6 +41,9 @@
 - [x] Añadir migración Room para persistir configuración del agente de apagado remoto
 - [x] Añadir sección de apagado remoto en el editor de dispositivos
 - [x] Añadir acción manual `Apagar` para dispositivos con agente configurado
+- [x] Alinear Android con las rutas canónicas `/api/v1/status` y `/api/v1/poweroff` de KineticSOL
+- [x] Añadir flujo `Probar conexión` para el agente Linux
+- [x] Diferenciar errores HTTP y de red del agente en la UI Android
 
 ## Checklist en curso
 
