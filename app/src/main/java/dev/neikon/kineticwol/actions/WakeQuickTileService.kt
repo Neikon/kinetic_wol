@@ -37,7 +37,7 @@ class WakeQuickTileService : TileService() {
 
             when {
                 devices.isEmpty() -> openMainApp()
-                devices.size == 1 -> wakeDevice(devices.single())
+                devices.size == 1 && !devices.single().remoteShutdown.isReady -> wakeDevice(devices.single())
                 else -> openDevicePicker()
             }
         }

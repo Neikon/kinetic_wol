@@ -1,6 +1,7 @@
 package dev.neikon.kineticwol.ui.home
 
 import androidx.annotation.StringRes
+import dev.neikon.kineticwol.domain.model.RemoteShutdownMethod
 import dev.neikon.kineticwol.domain.model.WakeDevice
 
 data class HomeUiState(
@@ -9,6 +10,7 @@ data class HomeUiState(
     val editor: DeviceDraft? = null,
     val validationErrors: Map<String, Int> = emptyMap(),
     val isHeroCardVisible: Boolean = true,
+    val isTestingAgentConnection: Boolean = false,
 )
 
 data class EventLog(
@@ -27,4 +29,8 @@ data class DeviceDraft(
     val macAddress: String = "",
     val host: String = "255.255.255.255",
     val port: String = "9",
+    val shutdownEnabled: Boolean = false,
+    val shutdownMethod: RemoteShutdownMethod = RemoteShutdownMethod.AGENT,
+    val agentBaseUrl: String = "",
+    val agentAuthToken: String = "",
 )

@@ -3,11 +3,18 @@ package dev.neikon.kineticwol.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import dev.neikon.kineticwol.actions.DeviceShortcutPublisher
 import dev.neikon.kineticwol.AppContainer
 import dev.neikon.kineticwol.R
+import dev.neikon.kineticwol.actions.DeviceShortcutPublisher
+import dev.neikon.kineticwol.domain.model.AgentShutdownConfig
+import dev.neikon.kineticwol.domain.model.RemoteShutdownConfig
+import dev.neikon.kineticwol.domain.model.RemoteShutdownMethod
 import dev.neikon.kineticwol.domain.model.WakeDevice
 import dev.neikon.kineticwol.domain.repository.DeviceRepository
+import dev.neikon.kineticwol.domain.shutdown.AgentPowerOffResult
+import dev.neikon.kineticwol.domain.shutdown.AgentRequestFailure
+import dev.neikon.kineticwol.domain.shutdown.AgentStatusResult
+import dev.neikon.kineticwol.domain.shutdown.AgentShutdownSender
 import dev.neikon.kineticwol.domain.wol.WakeOnLanSender
 import dev.neikon.kineticwol.util.normalizeDeviceName
 import java.time.LocalTime
@@ -25,6 +32,7 @@ import kotlinx.coroutines.launch
 class HomeViewModel(
     private val repository: DeviceRepository,
     private val wakeOnLanSender: WakeOnLanSender,
+    private val agentShutdownSender: AgentShutdownSender,
     private val deviceShortcutPublisher: DeviceShortcutPublisher,
     private val homeScreenPreferences: HomeScreenPreferences,
 ) : ViewModel() {
@@ -65,6 +73,10 @@ class HomeViewModel(
                     macAddress = device.macAddress,
                     host = device.host,
                     port = device.port.toString(),
+                    shutdownEnabled = device.remoteShutdown.enabled,
+                    shutdownMethod = device.remoteShutdown.method,
+                    agentBaseUrl = device.remoteShutdown.agent?.baseUrl.orEmpty(),
+                    agentAuthToken = device.remoteShutdown.agent?.authToken.orEmpty(),
                 ),
                 validationErrors = emptyMap(),
             )
@@ -106,6 +118,20 @@ class HomeViewModel(
             macAddress = draft.macAddress.trim(),
             host = draft.host.trim(),
             port = draft.port.toInt(),
+            remoteShutdown =
+                RemoteShutdownConfig(
+                    enabled = draft.shutdownEnabled,
+                    method = draft.shutdownMethod,
+                    agent =
+                        if (draft.shutdownEnabled) {
+                            AgentShutdownConfig(
+                                baseUrl = draft.agentBaseUrl.trim(),
+                                authToken = draft.agentAuthToken.trim(),
+                            )
+                        } else {
+                            null
+                        },
+                ),
         )
 
         viewModelScope.launch {
@@ -144,6 +170,79 @@ class HomeViewModel(
         }
     }
 
+    fun shutdownDevice(device: WakeDevice) {
+        viewModelScope.launch {
+            val result =
+                when (device.remoteShutdown.method) {
+                    RemoteShutdownMethod.AGENT -> agentShutdownSender.send(device)
+                    RemoteShutdownMethod.SSH ->
+                        AgentPowerOffResult.Failure(
+                            AgentRequestFailure.Unknown("SSH shutdown is not implemented yet."),
+                        )
+                }
+
+            when (result) {
+                is AgentPowerOffResult.Success -> {
+                    log(UiMessage(R.string.remote_shutdown_success, listOf(device.name)))
+                    _messages.emit(UiMessage(R.string.remote_shutdown_success, listOf(device.name)))
+                }
+
+                is AgentPowerOffResult.Failure -> {
+                    val message = powerOffFailureMessage(device.name, result.error)
+                    log(message)
+                    _messages.emit(message)
+                }
+            }
+        }
+    }
+
+    fun testAgentConnection() {
+        val draft = uiState.value.editor ?: return
+        val validationErrors = validateAgentConnectionDraft(draft)
+
+        if (validationErrors.isNotEmpty()) {
+            _uiState.update {
+                it.copy(
+                    validationErrors = it.validationErrors + validationErrors,
+                )
+            }
+            return
+        }
+
+        val config =
+            AgentShutdownConfig(
+                baseUrl = draft.agentBaseUrl.trim(),
+                authToken = draft.agentAuthToken.trim(),
+            )
+
+        viewModelScope.launch {
+            _uiState.update { state -> state.copy(isTestingAgentConnection = true) }
+            val result = agentShutdownSender.checkStatus(config)
+            _uiState.update { state -> state.copy(isTestingAgentConnection = false) }
+
+            val message =
+                when (result) {
+                    is AgentStatusResult.Success -> {
+                        if (result.data.canPowerOff.equals("yes", ignoreCase = true)) {
+                            UiMessage(
+                                R.string.agent_status_ready,
+                                listOf(result.data.message.ifBlank { result.data.canPowerOff }),
+                            )
+                        } else {
+                            UiMessage(
+                                R.string.agent_status_not_ready,
+                                listOf(result.data.message.ifBlank { result.data.canPowerOff }),
+                            )
+                        }
+                    }
+
+                    is AgentStatusResult.Failure -> statusFailureMessage(result.error)
+                }
+
+            _messages.emit(message)
+        }
+    }
+
     fun dismissHeroCard() {
         homeScreenPreferences.setHeroCardDismissed(true)
         _uiState.update { state -> state.copy(isHeroCardVisible = false) }
@@ -177,6 +276,26 @@ class HomeViewModel(
                 errors["macAddress"] = R.string.validation_mac
             }
 
+        if (draft.shutdownEnabled && draft.shutdownMethod == RemoteShutdownMethod.AGENT) {
+            if (draft.agentBaseUrl.isBlank()) {
+                errors["agentBaseUrl"] = R.string.validation_agent_base_url
+            }
+            if (draft.agentAuthToken.isBlank()) {
+                errors["agentAuthToken"] = R.string.validation_agent_auth_token
+            }
+        }
+
+        return errors
+    }
+
+    private fun validateAgentConnectionDraft(draft: DeviceDraft): Map<String, Int> {
+        val errors = mutableMapOf<String, Int>()
+        if (draft.agentBaseUrl.isBlank()) {
+            errors["agentBaseUrl"] = R.string.validation_agent_base_url
+        }
+        if (draft.agentAuthToken.isBlank()) {
+            errors["agentAuthToken"] = R.string.validation_agent_auth_token
+        }
         return errors
     }
 
@@ -201,6 +320,14 @@ class HomeViewModel(
         if (previous.macAddress != current.macAddress) changed += "macAddress"
         if (previous.host != current.host) changed += "host"
         if (previous.port != current.port) changed += "port"
+        if (previous.shutdownEnabled != current.shutdownEnabled) {
+            changed += "shutdownEnabled"
+            changed += "agentBaseUrl"
+            changed += "agentAuthToken"
+        }
+        if (previous.shutdownMethod != current.shutdownMethod) changed += "shutdownMethod"
+        if (previous.agentBaseUrl != current.agentBaseUrl) changed += "agentBaseUrl"
+        if (previous.agentAuthToken != current.agentAuthToken) changed += "agentAuthToken"
         return changed
     }
 
@@ -215,9 +342,59 @@ class HomeViewModel(
                     HomeViewModel(
                         repository = appContainer.deviceRepository,
                         wakeOnLanSender = appContainer.wakeOnLanSender,
+                        agentShutdownSender = appContainer.agentShutdownSender,
                         deviceShortcutPublisher = appContainer.deviceShortcutPublisher,
                         homeScreenPreferences = appContainer.homeScreenPreferences,
                     ) as T
             }
     }
+
+    private fun statusFailureMessage(error: AgentRequestFailure): UiMessage =
+        when (error) {
+            is AgentRequestFailure.InvalidBaseUrl -> UiMessage(R.string.agent_status_invalid_base_url)
+            is AgentRequestFailure.HostUnreachable -> UiMessage(R.string.agent_status_host_unreachable)
+            is AgentRequestFailure.ConnectionRefused ->
+                UiMessage(R.string.agent_status_connection_refused)
+            is AgentRequestFailure.Unauthorized -> UiMessage(R.string.agent_status_invalid_token)
+            is AgentRequestFailure.NotFound -> UiMessage(R.string.agent_status_not_found)
+            is AgentRequestFailure.BackendUnavailable ->
+                UiMessage(
+                    R.string.agent_status_backend_unavailable,
+                    listOf(error.message.orEmpty()),
+                )
+            is AgentRequestFailure.Timeout -> UiMessage(R.string.agent_status_timeout)
+            is AgentRequestFailure.CleartextBlocked -> UiMessage(R.string.agent_status_cleartext_blocked)
+            is AgentRequestFailure.Ssl -> UiMessage(R.string.agent_status_ssl_error)
+            is AgentRequestFailure.Network -> UiMessage(R.string.agent_status_network_error)
+            is AgentRequestFailure.Unknown -> UiMessage(R.string.agent_status_unexpected_error)
+        }
+
+    private fun powerOffFailureMessage(
+        deviceName: String,
+        error: AgentRequestFailure,
+    ): UiMessage =
+        when (error) {
+            is AgentRequestFailure.InvalidBaseUrl ->
+                UiMessage(R.string.remote_shutdown_invalid_base_url, listOf(deviceName))
+            is AgentRequestFailure.HostUnreachable ->
+                UiMessage(R.string.remote_shutdown_host_unreachable, listOf(deviceName))
+            is AgentRequestFailure.ConnectionRefused ->
+                UiMessage(R.string.remote_shutdown_connection_refused, listOf(deviceName))
+            is AgentRequestFailure.Unauthorized ->
+                UiMessage(R.string.remote_shutdown_invalid_token, listOf(deviceName))
+            is AgentRequestFailure.NotFound ->
+                UiMessage(R.string.remote_shutdown_not_found, listOf(deviceName))
+            is AgentRequestFailure.BackendUnavailable ->
+                UiMessage(R.string.remote_shutdown_backend_unavailable)
+            is AgentRequestFailure.Timeout ->
+                UiMessage(R.string.remote_shutdown_timeout, listOf(deviceName))
+            is AgentRequestFailure.CleartextBlocked ->
+                UiMessage(R.string.remote_shutdown_cleartext_blocked, listOf(deviceName))
+            is AgentRequestFailure.Ssl ->
+                UiMessage(R.string.remote_shutdown_ssl_error, listOf(deviceName))
+            is AgentRequestFailure.Network ->
+                UiMessage(R.string.remote_shutdown_network_error, listOf(deviceName))
+            is AgentRequestFailure.Unknown ->
+                UiMessage(R.string.remote_shutdown_error, listOf(deviceName))
+        }
 }
