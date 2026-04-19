@@ -170,7 +170,7 @@ class SshShutdownSender(
         return null
     }
 
-    private fun runCommand(
+    private suspend fun runCommand(
         config: SshShutdownConfig,
         command: String,
         onCommandStarted: (() -> Unit)? = null,
