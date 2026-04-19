@@ -175,8 +175,8 @@ class SshShutdownSender(
 
         return try {
             SSHClient().use { client ->
-                client.setConnectTimeout(CONNECT_TIMEOUT_MS)
-                client.setTimeout(SOCKET_TIMEOUT_MS)
+                client.connectTimeout = CONNECT_TIMEOUT_MS
+                client.timeout = SOCKET_TIMEOUT_MS
                 val verifier = CapturingHostKeyVerifier(config.hostKeyFingerprint)
                 client.addHostKeyVerifier(verifier)
 
