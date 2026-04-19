@@ -15,7 +15,9 @@ import java.net.UnknownHostException
 import java.security.PublicKey
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import net.schmizz.sshj.SSHClient
 import net.schmizz.sshj.common.SecurityUtils
 import net.schmizz.sshj.common.SSHException
@@ -176,31 +178,40 @@ class SshShutdownSender(
         val keyFile = writePrivateKeyToCache(config.privateKey)
 
         return try {
-            SSHClient().use { client ->
-                client.connectTimeout = CONNECT_TIMEOUT_MS
-                client.timeout = SOCKET_TIMEOUT_MS
-                val verifier = CapturingHostKeyVerifier(config.hostKeyFingerprint)
-                client.addHostKeyVerifier(verifier)
+            withTimeout(OPERATION_TIMEOUT_MS) {
+                SSHClient().use { client ->
+                    client.connectTimeout = CONNECT_TIMEOUT_MS
+                    client.timeout = SOCKET_TIMEOUT_MS
+                    val verifier = CapturingHostKeyVerifier(config.hostKeyFingerprint)
+                    client.addHostKeyVerifier(verifier)
 
-                Log.d(TAG, "SSH connect ${config.username}@${config.host}:${config.port}")
-                client.connect(config.host.trim(), config.port)
+                    Log.d(TAG, "SSH connect ${config.username}@${config.host}:${config.port}")
+                    client.connect(config.host.trim(), config.port)
+                    Log.d(TAG, "SSH connected ${config.username}@${config.host}:${config.port}")
 
-                val keyProvider =
-                    if (config.keyPassphrase.isNullOrBlank()) {
-                        client.loadKeys(keyFile.absolutePath)
-                    } else {
-                        client.loadKeys(keyFile.absolutePath, config.keyPassphrase.toCharArray())
+                    Log.d(TAG, "SSH load key ${config.username}@${config.host}:${config.port}")
+                    val keyProvider =
+                        if (config.keyPassphrase.isNullOrBlank()) {
+                            client.loadKeys(keyFile.absolutePath)
+                        } else {
+                            client.loadKeys(keyFile.absolutePath, config.keyPassphrase.toCharArray())
+                        }
+                    Log.d(TAG, "SSH key loaded ${config.username}@${config.host}:${config.port}")
+
+                    Log.d(TAG, "SSH auth ${config.username}@${config.host}:${config.port}")
+                    client.authPublickey(config.username.trim(), keyProvider)
+                    Log.d(TAG, "SSH authenticated ${config.username}@${config.host}:${config.port}")
+
+                    Log.d(TAG, "SSH start session ${config.username}@${config.host}:${config.port}")
+                    client.startSession().use { session ->
+                        Log.d(TAG, "SSH session started ${config.username}@${config.host}:${config.port}")
+                        executeSessionCommand(
+                            session = session,
+                            command = command,
+                            onCommandStarted = onCommandStarted,
+                            hostKeyFingerprint = verifier.capturedFingerprint.orEmpty(),
+                        )
                     }
-
-                client.authPublickey(config.username.trim(), keyProvider)
-
-                client.startSession().use { session ->
-                    executeSessionCommand(
-                        session = session,
-                        command = command,
-                        onCommandStarted = onCommandStarted,
-                        hostKeyFingerprint = verifier.capturedFingerprint.orEmpty(),
-                    )
                 }
             }
         } finally {
@@ -246,6 +257,7 @@ class SshShutdownSender(
             is UnknownHostException -> SshRequestFailure.HostUnreachable(root.message)
             is ConnectException -> SshRequestFailure.ConnectionRefused(root.message)
             is SocketTimeoutException -> SshRequestFailure.Timeout(root.message)
+            is TimeoutCancellationException -> SshRequestFailure.Timeout(root.message)
             is UserAuthException -> SshRequestFailure.AuthenticationFailed(root.message)
             is TransportException -> {
                 when {
@@ -346,6 +358,7 @@ class SshShutdownSender(
         private const val TAG = "SshShutdownSender"
         private const val CONNECT_TIMEOUT_MS = 5_000
         private const val SOCKET_TIMEOUT_MS = 5_000
+        private const val OPERATION_TIMEOUT_MS = 15_000L
         private const val COMMAND_TIMEOUT_SECONDS = 5L
         private const val TEST_TOKEN = "kineticwol-ssh-ok"
         private const val TEST_COMMAND = "printf '$TEST_TOKEN'"
