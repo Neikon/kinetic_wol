@@ -180,6 +180,8 @@ class SshShutdownSender(
 
         return try {
             withTimeout(OPERATION_TIMEOUT_MS) {
+                SecurityUtils.setRegisterBouncyCastle(false)
+                SecurityUtils.setSecurityProvider(null)
                 val sshConfig = AndroidCompatibleSshConfig()
                 Log.d(TAG, "SSH kex ${sshConfig.keyExchangeFactories.joinToString { it.name }}")
 
