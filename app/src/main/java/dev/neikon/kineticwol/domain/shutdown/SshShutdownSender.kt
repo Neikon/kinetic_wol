@@ -18,6 +18,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import net.schmizz.sshj.DefaultConfig
 import net.schmizz.sshj.SSHClient
 import net.schmizz.sshj.common.SecurityUtils
 import net.schmizz.sshj.common.SSHException
@@ -179,7 +180,10 @@ class SshShutdownSender(
 
         return try {
             withTimeout(OPERATION_TIMEOUT_MS) {
-                SSHClient().use { client ->
+                val sshConfig = AndroidCompatibleSshConfig()
+                Log.d(TAG, "SSH kex ${sshConfig.keyExchangeFactories.joinToString { it.name }}")
+
+                SSHClient(sshConfig).use { client ->
                     client.connectTimeout = CONNECT_TIMEOUT_MS
                     client.timeout = SOCKET_TIMEOUT_MS
                     val verifier = CapturingHostKeyVerifier(config.hostKeyFingerprint)
@@ -327,6 +331,18 @@ class SshShutdownSender(
         val stderr: String,
         val hostKeyFingerprint: String,
     )
+
+    private class AndroidCompatibleSshConfig : DefaultConfig() {
+        init {
+            super.setKeyExchangeFactories(
+                getKeyExchangeFactories()
+                    .filterNot { factory ->
+                        factory.name.equals("curve25519-sha256", ignoreCase = true) ||
+                            factory.name.equals("curve25519-sha256@libssh.org", ignoreCase = true)
+                    },
+            )
+        }
+    }
 
     private class CapturingHostKeyVerifier(
         expectedFingerprint: String,
