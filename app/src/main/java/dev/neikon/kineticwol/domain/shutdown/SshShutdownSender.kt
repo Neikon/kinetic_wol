@@ -315,6 +315,11 @@ class SshShutdownSender(
             return normalizedExpectedFingerprint.isEmpty() ||
                 normalizedExpectedFingerprint == actualFingerprint.normalizeFingerprint()
         }
+
+        override fun findExistingAlgorithms(
+            p0: String,
+            p1: Int,
+        ): MutableList<String> = mutableListOf()
     }
 
     companion object {
