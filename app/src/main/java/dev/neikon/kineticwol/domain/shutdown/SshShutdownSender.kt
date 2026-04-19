@@ -85,6 +85,7 @@ class SshShutdownSender(
                     }
                 },
                 onFailure = { error ->
+                    logFailure("status", config, error)
                     SshStatusResult.Failure(error.toFailure())
                 },
             )
@@ -144,6 +145,7 @@ class SshShutdownSender(
                     if (commandStarted && error.isLikelyConnectionClosedAfterCommand()) {
                         SshPowerOffResult.Success("SSH connection closed after the shutdown command was sent.")
                     } else {
+                        logFailure("poweroff", config, error)
                         SshPowerOffResult.Failure(error.toFailure())
                     }
                 },
@@ -240,30 +242,32 @@ class SshShutdownSender(
         }
 
     private fun Throwable.toFailure(): SshRequestFailure =
-        when (this) {
-            is UnknownHostException -> SshRequestFailure.HostUnreachable(message)
-            is ConnectException -> SshRequestFailure.ConnectionRefused(message)
-            is SocketTimeoutException -> SshRequestFailure.Timeout(message)
-            is UserAuthException -> SshRequestFailure.AuthenticationFailed(message)
+        when (val root = rootCause()) {
+            is UnknownHostException -> SshRequestFailure.HostUnreachable(root.message)
+            is ConnectException -> SshRequestFailure.ConnectionRefused(root.message)
+            is SocketTimeoutException -> SshRequestFailure.Timeout(root.message)
+            is UserAuthException -> SshRequestFailure.AuthenticationFailed(root.message)
             is TransportException -> {
                 when {
-                    message.containsAny("host key", "fingerprint", "verify") ->
-                        SshRequestFailure.HostKeyMismatch(message)
-                    else -> SshRequestFailure.Network(message)
+                    root.message.containsAny("host key", "fingerprint", "verify") ->
+                        SshRequestFailure.HostKeyMismatch(root.message)
+                    else -> SshRequestFailure.Network(root.message)
                 }
             }
-            is ConnectionException -> SshRequestFailure.Network(message)
+            is ConnectionException -> SshRequestFailure.Network(root.message)
             is SSHException -> {
                 when {
-                    message.containsAny("bouncycastle", "key provider", "private key", "passphrase") ->
-                        SshRequestFailure.InvalidPrivateKey(message)
-                    message.containsAny("host key", "fingerprint", "verify") ->
-                        SshRequestFailure.HostKeyMismatch(message)
-                    else -> SshRequestFailure.Unknown(message)
+                    root.message.containsAny("bouncycastle", "key provider", "private key", "passphrase") ->
+                        SshRequestFailure.InvalidPrivateKey(root.message)
+                    root.message.containsAny("host key", "fingerprint", "verify") ->
+                        SshRequestFailure.HostKeyMismatch(root.message)
+                    root.message.containsAny("auth fail", "authenticate", "authent") ->
+                        SshRequestFailure.AuthenticationFailed(root.message)
+                    else -> SshRequestFailure.Unknown(root.message)
                 }
             }
-            is IOException -> SshRequestFailure.Network(message)
-            else -> SshRequestFailure.Unknown(message)
+            is IOException -> SshRequestFailure.Network(root.message)
+            else -> SshRequestFailure.Unknown(root.message)
         }
 
     private fun Throwable.isLikelyConnectionClosedAfterCommand(): Boolean =
@@ -287,6 +291,22 @@ class SshShutdownSender(
     private fun String?.containsAny(vararg needles: String): Boolean {
         val haystack = this?.lowercase().orEmpty()
         return needles.any { haystack.contains(it.lowercase()) }
+    }
+
+    private fun Throwable.rootCause(): Throwable =
+        generateSequence(this) { current -> current.cause }.last()
+
+    private fun logFailure(
+        operation: String,
+        config: SshShutdownConfig,
+        error: Throwable,
+    ) {
+        val root = error.rootCause()
+        Log.e(
+            TAG,
+            "SSH $operation ${config.username}@${config.host}:${config.port} failed with ${root::class.java.name}: ${root.message}",
+            error,
+        )
     }
 
     private data class SshCommandResult(
