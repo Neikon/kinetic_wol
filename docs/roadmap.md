@@ -50,6 +50,7 @@
 - [x] Añadir un icono adaptive propio para la app siguiendo el modelo de Android
 - [x] Añadir pipeline de GitHub Actions para compilar APK y publicar una GitHub Release en cada push a `main`
 - [x] Implementar apagado remoto por SSH con clave privada, fingerprint y comando configurable
+- [x] Añadir generación de claves SSH en la app y captura automática del fingerprint del host en la primera prueba
 
 ## Checklist en curso
 

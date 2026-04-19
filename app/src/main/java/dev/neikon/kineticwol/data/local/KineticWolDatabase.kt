@@ -9,7 +9,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [WakeDeviceEntity::class],
-    version = 3,
+    version = 4,
     exportSchema = false,
 )
 abstract class KineticWolDatabase : RoomDatabase() {
@@ -21,7 +21,7 @@ abstract class KineticWolDatabase : RoomDatabase() {
                 context,
                 KineticWolDatabase::class.java,
                 "kinetic_wol.db",
-            ).addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+            ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                 .build()
     }
 }
@@ -99,6 +99,18 @@ private val MIGRATION_2_3 =
                 """
                 ALTER TABLE wake_devices
                 ADD COLUMN shutdown_ssh_command TEXT
+                """.trimIndent(),
+            )
+        }
+    }
+
+private val MIGRATION_3_4 =
+    object : Migration(3, 4) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL(
+                """
+                ALTER TABLE wake_devices
+                ADD COLUMN shutdown_ssh_public_key TEXT
                 """.trimIndent(),
             )
         }

@@ -81,7 +81,9 @@
 - Implementada la primera versión de apagado remoto por SSH:
   - persistencia Room ampliada para host, puerto, usuario, clave privada, fingerprint, passphrase opcional y comando
   - selector de método `Agente` / `SSH` en el editor del dispositivo
+  - generación de par de claves SSH dentro de la app y visualización de la clave pública para copiarla al host
   - prueba de conexión SSH con autenticación real y comando remoto inocuo
+  - captura automática del fingerprint del host en la primera prueba SSH si aún no estaba guardado
   - apagado SSH usando el comando configurado, por defecto `sudo -n systemctl poweroff`
   - quick tile y picker actualizados para apagar también por SSH
 - La app ya define un icono adaptive propio con foreground, background y variante monochrome para themed icons

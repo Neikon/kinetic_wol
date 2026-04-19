@@ -38,6 +38,7 @@ data class DeviceDraft(
     val sshPort: String = "22",
     val sshUsername: String = "",
     val sshPrivateKey: String = "",
+    val sshPublicKey: String = "",
     val sshKeyPassphrase: String = "",
     val sshHostKeyFingerprint: String = "",
     val sshCommand: String = SshShutdownConfig.DEFAULT_COMMAND,

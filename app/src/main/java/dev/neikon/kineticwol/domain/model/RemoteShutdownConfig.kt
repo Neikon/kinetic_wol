@@ -15,6 +15,7 @@ data class SshShutdownConfig(
     val port: Int = 22,
     val username: String,
     val privateKey: String,
+    val publicKey: String = "",
     val hostKeyFingerprint: String,
     val keyPassphrase: String? = null,
     val command: String = DEFAULT_COMMAND,

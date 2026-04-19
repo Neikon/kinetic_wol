@@ -12,18 +12,22 @@ import java.net.ConnectException
 import java.net.SocketException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
+import java.security.PublicKey
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.schmizz.sshj.SSHClient
+import net.schmizz.sshj.common.SecurityUtils
 import net.schmizz.sshj.common.SSHException
 import net.schmizz.sshj.connection.ConnectionException
 import net.schmizz.sshj.connection.channel.direct.Session
 import net.schmizz.sshj.transport.TransportException
+import net.schmizz.sshj.transport.verification.HostKeyVerifier
 import net.schmizz.sshj.userauth.UserAuthException
 
 data class SshStatusSuccess(
     val message: String,
+    val hostKeyFingerprint: String,
 )
 
 sealed interface SshRequestFailure {
@@ -67,6 +71,7 @@ class SshShutdownSender(
                         SshStatusResult.Success(
                             SshStatusSuccess(
                                 message = "SSH authentication and remote command execution succeeded.",
+                                hostKeyFingerprint = result.hostKeyFingerprint,
                             ),
                         )
                     } else {
@@ -103,6 +108,13 @@ class SshShutdownSender(
             val validationFailure = validateConfig(config)
             if (validationFailure != null) {
                 return@withContext SshPowerOffResult.Failure(validationFailure)
+            }
+            if (config.hostKeyFingerprint.trim().isBlank()) {
+                return@withContext SshPowerOffResult.Failure(
+                    SshRequestFailure.InvalidConfiguration(
+                        "SSH host key fingerprint is blank.",
+                    ),
+                )
             }
 
             var commandStarted = false
@@ -151,10 +163,6 @@ class SshShutdownSender(
         if (config.privateKey.trim().isBlank()) {
             return SshRequestFailure.InvalidConfiguration("SSH private key is blank.")
         }
-        if (config.hostKeyFingerprint.trim().isBlank()) {
-            return SshRequestFailure.InvalidConfiguration("SSH host key fingerprint is blank.")
-        }
-
         return null
     }
 
@@ -169,7 +177,8 @@ class SshShutdownSender(
             SSHClient().use { client ->
                 client.setConnectTimeout(CONNECT_TIMEOUT_MS)
                 client.setTimeout(SOCKET_TIMEOUT_MS)
-                client.addHostKeyVerifier(config.hostKeyFingerprint.trim())
+                val verifier = CapturingHostKeyVerifier(config.hostKeyFingerprint)
+                client.addHostKeyVerifier(verifier)
 
                 Log.d(TAG, "SSH connect ${config.username}@${config.host}:${config.port}")
                 client.connect(config.host.trim(), config.port)
@@ -188,6 +197,7 @@ class SshShutdownSender(
                         session = session,
                         command = command,
                         onCommandStarted = onCommandStarted,
+                        hostKeyFingerprint = verifier.capturedFingerprint.orEmpty(),
                     )
                 }
             }
@@ -199,6 +209,7 @@ class SshShutdownSender(
     private fun executeSessionCommand(
         session: Session,
         command: String,
+        hostKeyFingerprint: String,
         onCommandStarted: (() -> Unit)? = null,
     ): SshCommandResult {
         Log.d(TAG, "SSH exec $command")
@@ -216,6 +227,7 @@ class SshShutdownSender(
                 exitStatus = exitStatus,
                 stdout = stdout,
                 stderr = stderr,
+                hostKeyFingerprint = hostKeyFingerprint,
             )
         }
     }
@@ -281,7 +293,29 @@ class SshShutdownSender(
         val exitStatus: Int?,
         val stdout: String,
         val stderr: String,
+        val hostKeyFingerprint: String,
     )
+
+    private class CapturingHostKeyVerifier(
+        expectedFingerprint: String,
+    ) : HostKeyVerifier {
+        private val normalizedExpectedFingerprint = expectedFingerprint.normalizeFingerprint()
+
+        var capturedFingerprint: String? = null
+            private set
+
+        override fun verify(
+            hostname: String,
+            port: Int,
+            key: PublicKey,
+        ): Boolean {
+            val actualFingerprint = SecurityUtils.getFingerprint(key)
+            capturedFingerprint = actualFingerprint
+
+            return normalizedExpectedFingerprint.isEmpty() ||
+                normalizedExpectedFingerprint == actualFingerprint.normalizeFingerprint()
+        }
+    }
 
     companion object {
         private const val TAG = "SshShutdownSender"
@@ -292,3 +326,6 @@ class SshShutdownSender(
         private const val TEST_COMMAND = "printf '$TEST_TOKEN'"
     }
 }
+
+private fun String.normalizeFingerprint(): String =
+    trim().lowercase().replace("sha256:", "")

@@ -17,6 +17,7 @@ import dev.neikon.kineticwol.domain.shutdown.AgentRequestFailure
 import dev.neikon.kineticwol.domain.shutdown.AgentStatusResult
 import dev.neikon.kineticwol.domain.shutdown.AgentShutdownSender
 import dev.neikon.kineticwol.domain.shutdown.SshPowerOffResult
+import dev.neikon.kineticwol.domain.shutdown.SshKeyMaterialGenerator
 import dev.neikon.kineticwol.domain.shutdown.SshRequestFailure
 import dev.neikon.kineticwol.domain.shutdown.SshShutdownSender
 import dev.neikon.kineticwol.domain.shutdown.SshStatusResult
@@ -39,6 +40,7 @@ class HomeViewModel(
     private val wakeOnLanSender: WakeOnLanSender,
     private val agentShutdownSender: AgentShutdownSender,
     private val sshShutdownSender: SshShutdownSender,
+    private val sshKeyMaterialGenerator: SshKeyMaterialGenerator,
     private val deviceShortcutPublisher: DeviceShortcutPublisher,
     private val homeScreenPreferences: HomeScreenPreferences,
 ) : ViewModel() {
@@ -87,6 +89,7 @@ class HomeViewModel(
                     sshPort = device.remoteShutdown.ssh?.port?.toString().orEmpty().ifBlank { "22" },
                     sshUsername = device.remoteShutdown.ssh?.username.orEmpty(),
                     sshPrivateKey = device.remoteShutdown.ssh?.privateKey.orEmpty(),
+                    sshPublicKey = device.remoteShutdown.ssh?.publicKey.orEmpty(),
                     sshKeyPassphrase = device.remoteShutdown.ssh?.keyPassphrase.orEmpty(),
                     sshHostKeyFingerprint = device.remoteShutdown.ssh?.hostKeyFingerprint.orEmpty(),
                     sshCommand = device.remoteShutdown.ssh?.command ?: SshShutdownConfig.DEFAULT_COMMAND,
@@ -151,6 +154,7 @@ class HomeViewModel(
                                 port = draft.sshPort.toInt(),
                                 username = draft.sshUsername.trim(),
                                 privateKey = draft.sshPrivateKey,
+                                publicKey = draft.sshPublicKey,
                                 hostKeyFingerprint = draft.sshHostKeyFingerprint.trim(),
                                 keyPassphrase = draft.sshKeyPassphrase.trim().takeIf { it.isNotEmpty() },
                                 command = draft.sshCommand.trim().ifBlank { SshShutdownConfig.DEFAULT_COMMAND },
@@ -286,6 +290,7 @@ class HomeViewModel(
                                     port = draft.sshPort.toInt(),
                                     username = draft.sshUsername.trim(),
                                     privateKey = draft.sshPrivateKey,
+                                    publicKey = draft.sshPublicKey,
                                     hostKeyFingerprint = draft.sshHostKeyFingerprint.trim(),
                                     keyPassphrase = draft.sshKeyPassphrase.trim().takeIf { it.isNotEmpty() },
                                     command = draft.sshCommand.trim().ifBlank { SshShutdownConfig.DEFAULT_COMMAND },
@@ -293,11 +298,28 @@ class HomeViewModel(
                             )
 
                         when (result) {
-                            is SshStatusResult.Success ->
-                                UiMessage(
-                                    R.string.ssh_status_ready,
-                                    listOf(result.data.message),
-                                )
+                            is SshStatusResult.Success -> {
+                                if (draft.sshHostKeyFingerprint.isBlank()) {
+                                    _uiState.update { state ->
+                                        state.copy(
+                                            editor = state.editor?.copy(
+                                                sshHostKeyFingerprint = result.data.hostKeyFingerprint,
+                                            ),
+                                            validationErrors =
+                                                state.validationErrors - "sshHostKeyFingerprint",
+                                        )
+                                    }
+                                    UiMessage(
+                                        R.string.ssh_status_ready_with_fingerprint,
+                                        listOf(result.data.hostKeyFingerprint),
+                                    )
+                                } else {
+                                    UiMessage(
+                                        R.string.ssh_status_ready,
+                                        listOf(result.data.message),
+                                    )
+                                }
+                            }
 
                             is SshStatusResult.Failure -> sshStatusFailureMessage(result.error)
                         }
@@ -312,6 +334,25 @@ class HomeViewModel(
     fun dismissHeroCard() {
         homeScreenPreferences.setHeroCardDismissed(true)
         _uiState.update { state -> state.copy(isHeroCardVisible = false) }
+    }
+
+    fun generateSshKeyPair() {
+        val draft = uiState.value.editor ?: return
+
+        viewModelScope.launch {
+            val generated = sshKeyMaterialGenerator.generate()
+            _uiState.update { state ->
+                state.copy(
+                    editor = state.editor?.copy(
+                        sshPrivateKey = generated.privateKeyPem,
+                        sshPublicKey = generated.publicKeyAuthorized,
+                        sshKeyPassphrase = "",
+                    ),
+                    validationErrors = state.validationErrors - setOf("sshPrivateKey"),
+                )
+            }
+            _messages.emit(UiMessage(R.string.ssh_keypair_generated))
+        }
     }
 
     private fun validateDraft(draft: DeviceDraft): Map<String, Int> {
@@ -403,9 +444,6 @@ class HomeViewModel(
                 if (draft.sshPrivateKey.isBlank()) {
                     errors["sshPrivateKey"] = R.string.validation_ssh_private_key
                 }
-                if (draft.sshHostKeyFingerprint.isBlank()) {
-                    errors["sshHostKeyFingerprint"] = R.string.validation_ssh_host_key_fingerprint
-                }
             }
         }
         return errors
@@ -440,6 +478,7 @@ class HomeViewModel(
             changed += "sshPort"
             changed += "sshUsername"
             changed += "sshPrivateKey"
+            changed += "sshPublicKey"
             changed += "sshKeyPassphrase"
             changed += "sshHostKeyFingerprint"
             changed += "sshCommand"
@@ -451,6 +490,7 @@ class HomeViewModel(
         if (previous.sshPort != current.sshPort) changed += "sshPort"
         if (previous.sshUsername != current.sshUsername) changed += "sshUsername"
         if (previous.sshPrivateKey != current.sshPrivateKey) changed += "sshPrivateKey"
+        if (previous.sshPublicKey != current.sshPublicKey) changed += "sshPublicKey"
         if (previous.sshKeyPassphrase != current.sshKeyPassphrase) changed += "sshKeyPassphrase"
         if (previous.sshHostKeyFingerprint != current.sshHostKeyFingerprint) {
             changed += "sshHostKeyFingerprint"
@@ -472,6 +512,7 @@ class HomeViewModel(
                         wakeOnLanSender = appContainer.wakeOnLanSender,
                         agentShutdownSender = appContainer.agentShutdownSender,
                         sshShutdownSender = appContainer.sshShutdownSender,
+                        sshKeyMaterialGenerator = appContainer.sshKeyMaterialGenerator,
                         deviceShortcutPublisher = appContainer.deviceShortcutPublisher,
                         homeScreenPreferences = appContainer.homeScreenPreferences,
                     ) as T

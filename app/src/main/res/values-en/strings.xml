@@ -67,13 +67,16 @@
     <string name="ssh_username_label">SSH username</string>
     <string name="ssh_username_hint">neikon</string>
     <string name="ssh_host_key_fingerprint_label">Host fingerprint</string>
-    <string name="ssh_host_key_fingerprint_hint">SHA256:abc123...</string>
+    <string name="ssh_host_key_fingerprint_hint">It can be captured automatically on the first test</string>
+    <string name="ssh_public_key_label">SSH public key</string>
+    <string name="ssh_public_key_hint">Generate a key in the app so you can copy it to the remote host</string>
     <string name="ssh_key_passphrase_label">Key passphrase</string>
     <string name="ssh_key_passphrase_hint">Optional if the key is encrypted</string>
     <string name="ssh_command_label">Remote command</string>
     <string name="ssh_command_hint">sudo -n systemctl poweroff</string>
     <string name="ssh_private_key_label">SSH private key</string>
     <string name="ssh_private_key_hint">Paste the PEM or OpenSSH private key here</string>
+    <string name="generate_ssh_keypair">Generate new SSH key</string>
     <string name="test_remote_shutdown_connection">Test connection</string>
     <string name="manual_wake_success">Magic packet sent to %1$s.</string>
     <string name="manual_wake_error">Could not wake %1$s.</string>
@@ -103,6 +106,7 @@
     <string name="agent_status_network_error">Could not contact the agent.</string>
     <string name="agent_status_unexpected_error">The agent responded with an unexpected error.</string>
     <string name="ssh_status_ready">SSH connection succeeded. %1$s</string>
+    <string name="ssh_status_ready_with_fingerprint">SSH connection succeeded. The host fingerprint has been stored: %1$s</string>
     <string name="ssh_status_invalid_configuration">The SSH configuration is invalid.</string>
     <string name="ssh_status_host_unreachable">SSH host is invalid or cannot be resolved.</string>
     <string name="ssh_status_connection_refused">SSH port is closed or the connection was refused.</string>
@@ -122,6 +126,7 @@
     <string name="remote_shutdown_ssh_command_failed">Could not shut down %1$s: the remote command failed. Check sudoers and the configured command.</string>
     <string name="remote_shutdown_ssh_timeout">Could not reach %1$s over SSH before the timeout.</string>
     <string name="remote_shutdown_ssh_network_error">Could not establish an SSH connection to %1$s.</string>
+    <string name="ssh_keypair_generated">A new SSH key has been generated. Copy the public key to the remote host before testing the connection.</string>
     <string name="save_success">Device saved.</string>
     <string name="delete_success">Device deleted.</string>
     <string name="log_saved_device">Device saved: %1$s.</string>

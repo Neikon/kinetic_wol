@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
@@ -94,6 +95,7 @@ fun KineticWolApp(
         onDeleteDraft = viewModel::deleteCurrentDevice,
         onWakeDevice = viewModel::wakeDevice,
         onShutdownDevice = viewModel::shutdownDevice,
+        onGenerateSshKeyPair = viewModel::generateSshKeyPair,
         onTestShutdownConnection = viewModel::testRemoteShutdownConnection,
     )
 }
@@ -112,6 +114,7 @@ private fun KineticWolScaffold(
     onDeleteDraft: () -> Unit,
     onWakeDevice: (WakeDevice) -> Unit,
     onShutdownDevice: (WakeDevice) -> Unit,
+    onGenerateSshKeyPair: () -> Unit,
     onTestShutdownConnection: () -> Unit,
 ) {
     BackHandler(enabled = uiState.editor != null) {
@@ -162,6 +165,7 @@ private fun KineticWolScaffold(
                     validationErrors = uiState.validationErrors,
                     onDismiss = onDismissEditor,
                     onDraftChange = onDraftChange,
+                    onGenerateSshKeyPair = onGenerateSshKeyPair,
                     onTestShutdownConnection = onTestShutdownConnection,
                     onSave = onSaveDraft,
                     onDelete = onDeleteDraft,
@@ -506,6 +510,7 @@ private fun DeviceEditorContent(
     validationErrors: Map<String, Int>,
     onDismiss: () -> Unit,
     onDraftChange: (DeviceDraft) -> Unit,
+    onGenerateSshKeyPair: () -> Unit,
     onTestShutdownConnection: () -> Unit,
     onSave: () -> Unit,
     onDelete: () -> Unit,
@@ -713,6 +718,12 @@ private fun DeviceEditorContent(
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.primary,
                             )
+                            OutlinedButton(
+                                onClick = onGenerateSshKeyPair,
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Text(text = stringResource(id = R.string.generate_ssh_keypair))
+                            }
                             DraftTextField(
                                 label = stringResource(id = R.string.ssh_host_label),
                                 value = draft.sshHost,
@@ -755,6 +766,13 @@ private fun DeviceEditorContent(
                                     onDraftChange(draft.copy(sshHostKeyFingerprint = it))
                                 },
                             )
+                            if (draft.sshPublicKey.isNotBlank()) {
+                                ReadOnlyDraftField(
+                                    label = stringResource(id = R.string.ssh_public_key_label),
+                                    value = draft.sshPublicKey,
+                                    placeholder = stringResource(id = R.string.ssh_public_key_hint),
+                                )
+                            }
                             DraftTextField(
                                 label = stringResource(id = R.string.ssh_key_passphrase_label),
                                 value = draft.sshKeyPassphrase,
@@ -786,7 +804,19 @@ private fun DeviceEditorContent(
                                 imeAction = ImeAction.Done,
                                 singleLine = false,
                                 minLines = 6,
-                                onValueChange = { onDraftChange(draft.copy(sshPrivateKey = it)) },
+                                onValueChange = {
+                                    onDraftChange(
+                                        draft.copy(
+                                            sshPrivateKey = it,
+                                            sshPublicKey =
+                                                if (it == draft.sshPrivateKey) {
+                                                    draft.sshPublicKey
+                                                } else {
+                                                    ""
+                                                },
+                                        ),
+                                    )
+                                },
                             )
                         }
                     }
@@ -846,6 +876,7 @@ private fun DraftTextField(
     visualTransformation: androidx.compose.ui.text.input.VisualTransformation = androidx.compose.ui.text.input.VisualTransformation.None,
     singleLine: Boolean = true,
     minLines: Int = 1,
+    readOnly: Boolean = false,
     onValueChange: (String) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -858,6 +889,7 @@ private fun DraftTextField(
             modifier = Modifier.fillMaxWidth(),
             singleLine = singleLine,
             minLines = minLines,
+            readOnly = readOnly,
             visualTransformation = visualTransformation,
             keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
                 keyboardType = keyboardType,
@@ -870,6 +902,32 @@ private fun DraftTextField(
                 text = stringResource(id = error),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.error,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ReadOnlyDraftField(
+    label: String,
+    value: String,
+    placeholder: String,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        SelectionContainer {
+            OutlinedTextField(
+                value = value,
+                onValueChange = {},
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text(text = placeholder) },
+                readOnly = true,
+                singleLine = false,
+                minLines = 3,
             )
         }
     }

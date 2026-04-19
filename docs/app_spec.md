@@ -58,10 +58,13 @@ Primera fase:
   - puerto
   - usuario
   - clave privada
+  - clave pública visible para copiar al host remoto
   - fingerprint del host
   - passphrase opcional
   - comando remoto configurable
+- generar un par de claves SSH dentro de la app para no depender de herramientas externas en Android
 - verificar conectividad SSH y autenticación antes del apagado real
+- permitir trust-on-first-use controlado en el flujo de prueba para capturar el fingerprint del host una única vez
 - ejecutar un comando de apagado remoto no interactivo, con valor por defecto `sudo -n systemctl poweroff`
 
 Fases posteriores previstas:
