@@ -57,6 +57,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.neikon.kineticwol.AppContainer
 import dev.neikon.kineticwol.R
+import dev.neikon.kineticwol.domain.model.RemoteShutdownMethod
 import dev.neikon.kineticwol.domain.model.WakeDevice
 import dev.neikon.kineticwol.ui.home.DeviceDraft
 import dev.neikon.kineticwol.ui.home.EventLog
@@ -93,7 +94,7 @@ fun KineticWolApp(
         onDeleteDraft = viewModel::deleteCurrentDevice,
         onWakeDevice = viewModel::wakeDevice,
         onShutdownDevice = viewModel::shutdownDevice,
-        onTestAgentConnection = viewModel::testAgentConnection,
+        onTestShutdownConnection = viewModel::testRemoteShutdownConnection,
     )
 }
 
@@ -111,7 +112,7 @@ private fun KineticWolScaffold(
     onDeleteDraft: () -> Unit,
     onWakeDevice: (WakeDevice) -> Unit,
     onShutdownDevice: (WakeDevice) -> Unit,
-    onTestAgentConnection: () -> Unit,
+    onTestShutdownConnection: () -> Unit,
 ) {
     BackHandler(enabled = uiState.editor != null) {
         onDismissEditor()
@@ -157,11 +158,11 @@ private fun KineticWolScaffold(
                 val editor = uiState.editor ?: return@Crossfade
                 DeviceEditorContent(
                     draft = editor,
-                    isTestingAgentConnection = uiState.isTestingAgentConnection,
+                    isTestingShutdownConnection = uiState.isTestingShutdownConnection,
                     validationErrors = uiState.validationErrors,
                     onDismiss = onDismissEditor,
                     onDraftChange = onDraftChange,
-                    onTestAgentConnection = onTestAgentConnection,
+                    onTestShutdownConnection = onTestShutdownConnection,
                     onSave = onSaveDraft,
                     onDelete = onDeleteDraft,
                     modifier = Modifier.padding(innerPadding),
@@ -501,11 +502,11 @@ private fun LogsCard(logs: List<EventLog>) {
 @Composable
 private fun DeviceEditorContent(
     draft: DeviceDraft,
-    isTestingAgentConnection: Boolean,
+    isTestingShutdownConnection: Boolean,
     validationErrors: Map<String, Int>,
     onDismiss: () -> Unit,
     onDraftChange: (DeviceDraft) -> Unit,
-    onTestAgentConnection: () -> Unit,
+    onTestShutdownConnection: () -> Unit,
     onSave: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
@@ -636,37 +637,166 @@ private fun DeviceEditorContent(
 
                 if (draft.shutdownEnabled) {
                     Text(
-                        text = stringResource(id = R.string.shutdown_method_agent_only),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary,
+                        text = stringResource(id = R.string.shutdown_method_label),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    DraftTextField(
-                        label = stringResource(id = R.string.agent_base_url_label),
-                        value = draft.agentBaseUrl,
-                        error = validationErrors["agentBaseUrl"],
-                        placeholder = stringResource(id = R.string.agent_base_url_hint),
-                        keyboardType = KeyboardType.Uri,
-                        capitalization = KeyboardCapitalization.None,
-                        imeAction = ImeAction.Next,
-                        onValueChange = { onDraftChange(draft.copy(agentBaseUrl = it)) },
-                    )
-                    DraftTextField(
-                        label = stringResource(id = R.string.agent_auth_token_label),
-                        value = draft.agentAuthToken,
-                        error = validationErrors["agentAuthToken"],
-                        placeholder = stringResource(id = R.string.agent_auth_token_hint),
-                        keyboardType = KeyboardType.Password,
-                        capitalization = KeyboardCapitalization.None,
-                        imeAction = ImeAction.Done,
-                        visualTransformation = PasswordVisualTransformation(),
-                        onValueChange = { onDraftChange(draft.copy(agentAuthToken = it)) },
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        if (draft.shutdownMethod == RemoteShutdownMethod.AGENT) {
+                            FilledTonalButton(
+                                onClick = { onDraftChange(draft.copy(shutdownMethod = RemoteShutdownMethod.AGENT)) },
+                                modifier = Modifier.weight(1f),
+                            ) {
+                                Text(text = stringResource(id = R.string.shutdown_method_agent))
+                            }
+                        } else {
+                            OutlinedButton(
+                                onClick = { onDraftChange(draft.copy(shutdownMethod = RemoteShutdownMethod.AGENT)) },
+                                modifier = Modifier.weight(1f),
+                            ) {
+                                Text(text = stringResource(id = R.string.shutdown_method_agent))
+                            }
+                        }
+                        if (draft.shutdownMethod == RemoteShutdownMethod.SSH) {
+                            FilledTonalButton(
+                                onClick = { onDraftChange(draft.copy(shutdownMethod = RemoteShutdownMethod.SSH)) },
+                                modifier = Modifier.weight(1f),
+                            ) {
+                                Text(text = stringResource(id = R.string.shutdown_method_ssh))
+                            }
+                        } else {
+                            OutlinedButton(
+                                onClick = { onDraftChange(draft.copy(shutdownMethod = RemoteShutdownMethod.SSH)) },
+                                modifier = Modifier.weight(1f),
+                            ) {
+                                Text(text = stringResource(id = R.string.shutdown_method_ssh))
+                            }
+                        }
+                    }
+
+                    when (draft.shutdownMethod) {
+                        RemoteShutdownMethod.AGENT -> {
+                            Text(
+                                text = stringResource(id = R.string.shutdown_method_agent_only),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                            DraftTextField(
+                                label = stringResource(id = R.string.agent_base_url_label),
+                                value = draft.agentBaseUrl,
+                                error = validationErrors["agentBaseUrl"],
+                                placeholder = stringResource(id = R.string.agent_base_url_hint),
+                                keyboardType = KeyboardType.Uri,
+                                capitalization = KeyboardCapitalization.None,
+                                imeAction = ImeAction.Next,
+                                onValueChange = { onDraftChange(draft.copy(agentBaseUrl = it)) },
+                            )
+                            DraftTextField(
+                                label = stringResource(id = R.string.agent_auth_token_label),
+                                value = draft.agentAuthToken,
+                                error = validationErrors["agentAuthToken"],
+                                placeholder = stringResource(id = R.string.agent_auth_token_hint),
+                                keyboardType = KeyboardType.Password,
+                                capitalization = KeyboardCapitalization.None,
+                                imeAction = ImeAction.Done,
+                                visualTransformation = PasswordVisualTransformation(),
+                                onValueChange = { onDraftChange(draft.copy(agentAuthToken = it)) },
+                            )
+                        }
+
+                        RemoteShutdownMethod.SSH -> {
+                            Text(
+                                text = stringResource(id = R.string.shutdown_method_ssh_note),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                            DraftTextField(
+                                label = stringResource(id = R.string.ssh_host_label),
+                                value = draft.sshHost,
+                                error = validationErrors["sshHost"],
+                                placeholder = stringResource(id = R.string.ssh_host_hint),
+                                keyboardType = KeyboardType.Uri,
+                                capitalization = KeyboardCapitalization.None,
+                                imeAction = ImeAction.Next,
+                                onValueChange = { onDraftChange(draft.copy(sshHost = it)) },
+                            )
+                            DraftTextField(
+                                label = stringResource(id = R.string.ssh_port_label),
+                                value = draft.sshPort,
+                                error = validationErrors["sshPort"],
+                                placeholder = stringResource(id = R.string.ssh_port_hint),
+                                keyboardType = KeyboardType.Number,
+                                capitalization = KeyboardCapitalization.None,
+                                imeAction = ImeAction.Next,
+                                onValueChange = { onDraftChange(draft.copy(sshPort = it)) },
+                            )
+                            DraftTextField(
+                                label = stringResource(id = R.string.ssh_username_label),
+                                value = draft.sshUsername,
+                                error = validationErrors["sshUsername"],
+                                placeholder = stringResource(id = R.string.ssh_username_hint),
+                                keyboardType = KeyboardType.Text,
+                                capitalization = KeyboardCapitalization.None,
+                                imeAction = ImeAction.Next,
+                                onValueChange = { onDraftChange(draft.copy(sshUsername = it)) },
+                            )
+                            DraftTextField(
+                                label = stringResource(id = R.string.ssh_host_key_fingerprint_label),
+                                value = draft.sshHostKeyFingerprint,
+                                error = validationErrors["sshHostKeyFingerprint"],
+                                placeholder = stringResource(id = R.string.ssh_host_key_fingerprint_hint),
+                                keyboardType = KeyboardType.Ascii,
+                                capitalization = KeyboardCapitalization.None,
+                                imeAction = ImeAction.Next,
+                                onValueChange = {
+                                    onDraftChange(draft.copy(sshHostKeyFingerprint = it))
+                                },
+                            )
+                            DraftTextField(
+                                label = stringResource(id = R.string.ssh_key_passphrase_label),
+                                value = draft.sshKeyPassphrase,
+                                error = validationErrors["sshKeyPassphrase"],
+                                placeholder = stringResource(id = R.string.ssh_key_passphrase_hint),
+                                keyboardType = KeyboardType.Password,
+                                capitalization = KeyboardCapitalization.None,
+                                imeAction = ImeAction.Next,
+                                visualTransformation = PasswordVisualTransformation(),
+                                onValueChange = { onDraftChange(draft.copy(sshKeyPassphrase = it)) },
+                            )
+                            DraftTextField(
+                                label = stringResource(id = R.string.ssh_command_label),
+                                value = draft.sshCommand,
+                                error = validationErrors["sshCommand"],
+                                placeholder = stringResource(id = R.string.ssh_command_hint),
+                                keyboardType = KeyboardType.Ascii,
+                                capitalization = KeyboardCapitalization.None,
+                                imeAction = ImeAction.Next,
+                                onValueChange = { onDraftChange(draft.copy(sshCommand = it)) },
+                            )
+                            DraftTextField(
+                                label = stringResource(id = R.string.ssh_private_key_label),
+                                value = draft.sshPrivateKey,
+                                error = validationErrors["sshPrivateKey"],
+                                placeholder = stringResource(id = R.string.ssh_private_key_hint),
+                                keyboardType = KeyboardType.Ascii,
+                                capitalization = KeyboardCapitalization.None,
+                                imeAction = ImeAction.Done,
+                                singleLine = false,
+                                minLines = 6,
+                                onValueChange = { onDraftChange(draft.copy(sshPrivateKey = it)) },
+                            )
+                        }
+                    }
+
                     OutlinedButton(
-                        onClick = onTestAgentConnection,
-                        enabled = !isTestingAgentConnection,
+                        onClick = onTestShutdownConnection,
+                        enabled = !isTestingShutdownConnection,
                         modifier = Modifier.fillMaxWidth(),
                     ) {
-                        Text(text = stringResource(id = R.string.test_agent_connection))
+                        Text(text = stringResource(id = R.string.test_remote_shutdown_connection))
                     }
                 }
             }
@@ -714,6 +844,8 @@ private fun DraftTextField(
     capitalization: KeyboardCapitalization,
     imeAction: ImeAction,
     visualTransformation: androidx.compose.ui.text.input.VisualTransformation = androidx.compose.ui.text.input.VisualTransformation.None,
+    singleLine: Boolean = true,
+    minLines: Int = 1,
     onValueChange: (String) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -724,7 +856,8 @@ private fun DraftTextField(
             placeholder = { Text(text = placeholder) },
             isError = error != null,
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
+            singleLine = singleLine,
+            minLines = minLines,
             visualTransformation = visualTransformation,
             keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
                 keyboardType = keyboardType,
