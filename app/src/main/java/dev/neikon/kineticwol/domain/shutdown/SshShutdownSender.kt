@@ -184,6 +184,7 @@ class SshShutdownSender(
                 SecurityUtils.setSecurityProvider(null)
                 val sshConfig = AndroidCompatibleSshConfig()
                 Log.d(TAG, "SSH kex ${sshConfig.keyExchangeFactories.joinToString { it.name }}")
+                Log.d(TAG, "SSH host keys ${sshConfig.keyAlgorithms.joinToString { it.name }}")
 
                 SSHClient(sshConfig).use { client ->
                     client.connectTimeout = CONNECT_TIMEOUT_MS
@@ -341,6 +342,12 @@ class SshShutdownSender(
                     .filterNot { factory ->
                         factory.name.equals("curve25519-sha256", ignoreCase = true) ||
                             factory.name.equals("curve25519-sha256@libssh.org", ignoreCase = true)
+                    },
+            )
+            setKeyAlgorithms(
+                getKeyAlgorithms()
+                    .filterNot { factory ->
+                        factory.name.contains("ed25519", ignoreCase = true)
                     },
             )
         }
