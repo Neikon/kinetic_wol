@@ -346,8 +346,8 @@ class SshShutdownSender(
             )
             setKeyAlgorithms(
                 getKeyAlgorithms()
-                    .filterNot { factory ->
-                        factory.name.contains("ed25519", ignoreCase = true)
+                    .filter { factory ->
+                        factory.name.contains("rsa", ignoreCase = true)
                     },
             )
         }
