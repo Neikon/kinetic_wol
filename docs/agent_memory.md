@@ -89,12 +89,15 @@
 - La app ya define un icono adaptive propio con foreground, background y variante monochrome para themed icons
 - Se añadió un workflow de GitHub Actions para compilar `:app:assembleDebug`, adjuntar el APK como artifact y publicar una GitHub Release en cada push a `main`
 - El usuario confirmó que la integración end-to-end con el agente Linux HTTP del otro repositorio funciona correctamente
+- El usuario confirmó que el apagado remoto por SSH funciona end-to-end en un PC Linux con sudoers preparado
+- El usuario confirmó que el apagado remoto por SSH funciona end-to-end en TrueNAS SCALE
 
 ## Notas de build actuales
 
 - La rama de limpieza migra la build a `built-in Kotlin` de AGP 9
 - Los flags heredados de compatibilidad añadidos por Android Studio se han eliminado para reducir warnings y deuda técnica
 - La build `assembleDebug` compila correctamente en el entorno Android Studio del usuario tras la limpieza inicial
+- Android Studio actualizó la toolchain del proyecto a AGP `9.2.0` y Gradle `9.4.1`
 - El repositorio sigue sin incluir `gradlew`, así que desde esta sesión no se puede ejecutar la build localmente aunque haya tests unitarios añadidos
 
 ## Preparacion de release

@@ -52,10 +52,11 @@
 - [x] Implementar apagado remoto por SSH con clave privada, fingerprint y comando configurable
 - [x] Añadir generación de claves SSH en la app y captura automática del fingerprint del host en la primera prueba
 - [x] Validar end-to-end la integración con el agente Linux HTTP del otro repositorio
+- [x] Validar end-to-end el apagado remoto por SSH en un PC Linux real con sudoers preparado
+- [x] Validar end-to-end el apagado remoto por SSH en TrueNAS SCALE
 
 ## Checklist en curso
 
-- [ ] Validar end-to-end el apagado remoto por SSH en un host Linux real con sudoers preparado
 - [ ] Revisar y endurecer App Actions sobre la base ya validada
 - [ ] Reducir warnings y complejidad de Gradle sin perder compatibilidad de build
 
