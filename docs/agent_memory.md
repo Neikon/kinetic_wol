@@ -101,6 +101,7 @@
 - El pipeline de GitHub Actions debe usar Gradle `9.4.1`; falló al quedarse fijado en `9.3.1` tras la actualización de AGP
 - El workflow se ajustó para usar actions que ya declaran Node.js 24 y para configurar Android SDK con `sdkmanager` directo, evitando `android-actions/setup-android@v3`
 - El usuario confirmó que el pipeline resultante funciona y ya no muestra warnings de Node.js 20
+- El workflow de build/release ignora pushes que solo cambian documentación Markdown (`**/*.md` y `docs/**`)
 - El repositorio sigue sin incluir `gradlew`, así que desde esta sesión no se puede ejecutar la build localmente aunque haya tests unitarios añadidos
 
 ## Preparacion de release

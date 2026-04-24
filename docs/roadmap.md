@@ -58,6 +58,7 @@
 - [x] Optar el workflow de GitHub Actions a Node.js 24 para eliminar el warning de deprecación de Node.js 20
 - [x] Actualizar las actions del pipeline a variantes Node.js 24 y sustituir `android-actions/setup-android` por `sdkmanager` directo
 - [x] Confirmar que el pipeline vuelve a compilar correctamente y sin warnings de Node.js 20
+- [x] Evitar que el pipeline de build/release se ejecute en pushes que solo cambian documentación Markdown
 
 ## Checklist en curso
 
