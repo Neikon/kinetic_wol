@@ -8,3 +8,4 @@ captures/
 *.iml
 *.log
 /app/build/
+.codex

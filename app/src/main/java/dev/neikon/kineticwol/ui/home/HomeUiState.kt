@@ -2,6 +2,7 @@ package dev.neikon.kineticwol.ui.home
 
 import androidx.annotation.StringRes
 import dev.neikon.kineticwol.domain.model.RemoteShutdownMethod
+import dev.neikon.kineticwol.domain.model.SshShutdownConfig
 import dev.neikon.kineticwol.domain.model.WakeDevice
 
 data class HomeUiState(
@@ -10,7 +11,7 @@ data class HomeUiState(
     val editor: DeviceDraft? = null,
     val validationErrors: Map<String, Int> = emptyMap(),
     val isHeroCardVisible: Boolean = true,
-    val isTestingAgentConnection: Boolean = false,
+    val isTestingShutdownConnection: Boolean = false,
 )
 
 data class EventLog(
@@ -33,4 +34,12 @@ data class DeviceDraft(
     val shutdownMethod: RemoteShutdownMethod = RemoteShutdownMethod.AGENT,
     val agentBaseUrl: String = "",
     val agentAuthToken: String = "",
+    val sshHost: String = "",
+    val sshPort: String = "22",
+    val sshUsername: String = "",
+    val sshPrivateKey: String = "",
+    val sshPublicKey: String = "",
+    val sshKeyPassphrase: String = "",
+    val sshHostKeyFingerprint: String = "",
+    val sshCommand: String = SshShutdownConfig.DEFAULT_COMMAND,
 )

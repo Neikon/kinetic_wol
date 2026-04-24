@@ -53,10 +53,22 @@ Primera fase:
 - verificar conectividad y disponibilidad del backend con `GET /api/v1/status`
 - enviar una petición HTTP autenticada al endpoint de apagado del agente
 - mostrar la acción `Apagar` solo cuando la configuración esté lista
+- configurar apagado remoto por SSH con:
+  - host
+  - puerto
+  - usuario
+  - clave privada
+  - clave pública visible para copiar al host remoto
+  - fingerprint del host
+  - passphrase opcional
+  - comando remoto configurable
+- generar un par de claves SSH dentro de la app para no depender de herramientas externas en Android
+- verificar conectividad SSH y autenticación antes del apagado real
+- permitir trust-on-first-use controlado en el flujo de prueba para capturar el fingerprint del host una única vez
+- ejecutar un comando de apagado remoto no interactivo, con valor por defecto `sudo -n systemctl poweroff`
 
 Fases posteriores previstas:
 
-- apagado remoto por SSH
 - otras acciones de energía si aportan valor real
 
 Contrato mínimo actual del agente Linux:
@@ -65,6 +77,13 @@ Contrato mínimo actual del agente Linux:
 - `POST /api/v1/poweroff`
 - `Authorization: Bearer <token>`
 - diferenciación de errores útil en UI para token inválido, ruta incorrecta, backend no disponible y problemas de red
+
+Contrato mínimo previsto para SSH:
+
+- autenticación por clave privada, no por password
+- verificación explícita del fingerprint del host
+- comando remoto configurable por dispositivo
+- para Linux de escritorio y TrueNAS SCALE, la ruta soportada por la app asume que el host remoto ya está preparado para ejecutar el comando sin prompt interactivo
 
 ### 3.4 App Actions
 

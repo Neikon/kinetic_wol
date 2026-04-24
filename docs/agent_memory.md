@@ -17,7 +17,10 @@
 - `applicationId`: `dev.neikon.kineticwol`
 - El modelo de dispositivo se amplía para soportar capacidades adicionales además de Wake-on-LAN
 - La primera ruta de apagado remoto será un agente Linux HTTP autenticado por token
-- SSH queda planificado para una segunda fase, pero la arquitectura de `remoteShutdown` ya contempla ambos métodos
+- La app ya implementa dos rutas de apagado remoto:
+  - agente Linux HTTP autenticado por token
+  - SSH con clave privada, fingerprint de host y comando configurable
+- La ruta SSH se apoya en una precondición explícita: el usuario remoto debe poder ejecutar `sudo -n systemctl poweroff` o un comando equivalente sin prompt interactivo
 
 ## Contexto funcional
 
@@ -75,17 +78,35 @@
   - separación de host no resoluble, conexión rechazada, timeout, SSL y cleartext
   - `usesCleartextTraffic=true` activado temporalmente para pruebas LAN con `http://`
 - La quick tile de Android ahora abre el picker si un único dispositivo también soporta apagado remoto, y el picker muestra `Apagar` cuando esa capacidad está lista
+- Implementada la primera versión de apagado remoto por SSH:
+  - persistencia Room ampliada para host, puerto, usuario, clave privada, fingerprint, passphrase opcional y comando
+  - selector de método `Agente` / `SSH` en el editor del dispositivo
+  - generación de par de claves SSH dentro de la app y visualización de la clave pública para copiarla al host
+  - prueba de conexión SSH con autenticación real y comando remoto inocuo
+  - captura automática del fingerprint del host en la primera prueba SSH si aún no estaba guardado
+  - apagado SSH usando el comando configurado, por defecto `sudo -n systemctl poweroff`
+  - quick tile y picker actualizados para apagar también por SSH
 - La app ya define un icono adaptive propio con foreground, background y variante monochrome para themed icons
 - Se añadió un workflow de GitHub Actions para compilar `:app:assembleDebug`, adjuntar el APK como artifact y publicar una GitHub Release en cada push a `main`
+- El usuario confirmó que la integración end-to-end con el agente Linux HTTP del otro repositorio funciona correctamente
+- El usuario confirmó que el apagado remoto por SSH funciona end-to-end en un PC Linux con sudoers preparado
+- El usuario confirmó que el apagado remoto por SSH funciona end-to-end en TrueNAS SCALE
 
 ## Notas de build actuales
 
 - La rama de limpieza migra la build a `built-in Kotlin` de AGP 9
 - Los flags heredados de compatibilidad añadidos por Android Studio se han eliminado para reducir warnings y deuda técnica
 - La build `assembleDebug` compila correctamente en el entorno Android Studio del usuario tras la limpieza inicial
+- Android Studio actualizó la toolchain del proyecto a AGP `9.2.0` y Gradle `9.4.1`
 - El repositorio sigue sin incluir `gradlew`, así que desde esta sesión no se puede ejecutar la build localmente aunque haya tests unitarios añadidos
 
 ## Preparacion de release
 
 - La siguiente validación real recomendada es una `internal testing release` en Google Play
 - Se ha añadido una guía operativa en `docs/release_internal_testing.md`
+
+## Riesgos activos de SSH
+
+- La clave privada SSH se persiste por ahora en `Room`, igual que el token del agente; si la funcionalidad madura, habrá que mover ambos secretos a almacenamiento más seguro
+- La carga de ciertos formatos de clave puede depender de la compatibilidad real de `sshj` en Android con el formato pegado por el usuario
+- El test de conexión SSH valida red, fingerprint, clave y ejecución remota, pero no garantiza por sí mismo que `sudoers` esté correctamente preparado para el comando final de apagado

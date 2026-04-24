@@ -49,16 +49,19 @@
 - [x] Extender la quick tile para ofrecer apagado remoto cuando el dispositivo lo soporte
 - [x] Añadir un icono adaptive propio para la app siguiendo el modelo de Android
 - [x] Añadir pipeline de GitHub Actions para compilar APK y publicar una GitHub Release en cada push a `main`
+- [x] Implementar apagado remoto por SSH con clave privada, fingerprint y comando configurable
+- [x] Añadir generación de claves SSH en la app y captura automática del fingerprint del host en la primera prueba
+- [x] Validar end-to-end la integración con el agente Linux HTTP del otro repositorio
+- [x] Validar end-to-end el apagado remoto por SSH en un PC Linux real con sudoers preparado
+- [x] Validar end-to-end el apagado remoto por SSH en TrueNAS SCALE
 
 ## Checklist en curso
 
-- [ ] Validar end-to-end la integración con el agente Linux del otro repositorio
 - [ ] Revisar y endurecer App Actions sobre la base ya validada
 - [ ] Reducir warnings y complejidad de Gradle sin perder compatibilidad de build
 
 ## Checklist pendiente
 
-- [ ] Implementar apagado remoto por SSH
 - [ ] Validar envío WOL en dispositivo real y red local
 - [ ] Comprobar invocación real desde Assistant/Gemini mediante surfaces disponibles o `internal testing release`
 - [ ] Seguir endureciendo shortcuts dinámicos y flujo de fulfillment por voz
@@ -69,5 +72,6 @@
 
 - [ ] Falta de toolchain local en esta sesión para compilar desde terminal
 - [ ] El token del agente se persiste por ahora en `Room`; si la feature madura, habrá que moverlo a almacenamiento más seguro
+- [ ] La clave privada SSH se persiste por ahora en `Room`; si la feature madura, habrá que moverla a almacenamiento más seguro
 - [ ] El `App Actions test tool` no está disponible en el Android Studio del usuario pese a que la documentación oficial todavía lo menciona
 - [ ] Posible limitación de locale para voz en español

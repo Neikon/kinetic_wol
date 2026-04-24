@@ -40,9 +40,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import dev.neikon.kineticwol.KineticWolApplication
 import dev.neikon.kineticwol.R
+import dev.neikon.kineticwol.domain.model.RemoteShutdownMethod
 import dev.neikon.kineticwol.domain.model.WakeDevice
 import dev.neikon.kineticwol.domain.shutdown.AgentPowerOffResult
 import dev.neikon.kineticwol.domain.shutdown.AgentRequestFailure
+import dev.neikon.kineticwol.domain.shutdown.SshPowerOffResult
+import dev.neikon.kineticwol.domain.shutdown.SshRequestFailure
 import dev.neikon.kineticwol.ui.theme.KineticWolTheme
 import kotlinx.coroutines.launch
 
@@ -93,23 +96,45 @@ class QuickTileDevicePickerActivity : ComponentActivity() {
 
     private fun shutdownDevice(device: WakeDevice) {
         lifecycleScope.launch {
-            val result = appContainer.agentShutdownSender.send(device)
+            when (device.remoteShutdown.method) {
+                RemoteShutdownMethod.AGENT -> {
+                    when (val result = appContainer.agentShutdownSender.send(device)) {
+                        is AgentPowerOffResult.Success -> {
+                            Toast.makeText(
+                                this@QuickTileDevicePickerActivity,
+                                getString(R.string.remote_shutdown_success, device.name),
+                                Toast.LENGTH_SHORT,
+                            ).show()
+                        }
 
-            when (result) {
-                is AgentPowerOffResult.Success -> {
-                    Toast.makeText(
-                        this@QuickTileDevicePickerActivity,
-                        getString(R.string.remote_shutdown_success, device.name),
-                        Toast.LENGTH_SHORT,
-                    ).show()
+                        is AgentPowerOffResult.Failure -> {
+                            Toast.makeText(
+                                this@QuickTileDevicePickerActivity,
+                                shutdownErrorMessage(device.name, result.error),
+                                Toast.LENGTH_SHORT,
+                            ).show()
+                        }
+                    }
                 }
 
-                is AgentPowerOffResult.Failure -> {
-                    Toast.makeText(
-                        this@QuickTileDevicePickerActivity,
-                        shutdownErrorMessage(device.name, result.error),
-                        Toast.LENGTH_SHORT,
-                    ).show()
+                RemoteShutdownMethod.SSH -> {
+                    when (val result = appContainer.sshShutdownSender.send(device)) {
+                        is SshPowerOffResult.Success -> {
+                            Toast.makeText(
+                                this@QuickTileDevicePickerActivity,
+                                getString(R.string.remote_shutdown_success, device.name),
+                                Toast.LENGTH_SHORT,
+                            ).show()
+                        }
+
+                        is SshPowerOffResult.Failure -> {
+                            Toast.makeText(
+                                this@QuickTileDevicePickerActivity,
+                                sshShutdownErrorMessage(device.name, result.error),
+                                Toast.LENGTH_SHORT,
+                            ).show()
+                        }
+                    }
                 }
             }
 
@@ -143,6 +168,33 @@ class QuickTileDevicePickerActivity : ComponentActivity() {
             is AgentRequestFailure.Network ->
                 getString(R.string.remote_shutdown_network_error, deviceName)
             is AgentRequestFailure.Unknown ->
+                getString(R.string.remote_shutdown_error, deviceName)
+        }
+
+    private fun sshShutdownErrorMessage(
+        deviceName: String,
+        error: SshRequestFailure,
+    ): String =
+        when (error) {
+            is SshRequestFailure.InvalidConfiguration ->
+                getString(R.string.remote_shutdown_ssh_invalid_configuration, deviceName)
+            is SshRequestFailure.HostUnreachable ->
+                getString(R.string.remote_shutdown_ssh_host_unreachable, deviceName)
+            is SshRequestFailure.ConnectionRefused ->
+                getString(R.string.remote_shutdown_ssh_connection_refused, deviceName)
+            is SshRequestFailure.AuthenticationFailed ->
+                getString(R.string.remote_shutdown_ssh_auth_failed, deviceName)
+            is SshRequestFailure.HostKeyMismatch ->
+                getString(R.string.remote_shutdown_ssh_host_key_mismatch, deviceName)
+            is SshRequestFailure.InvalidPrivateKey ->
+                getString(R.string.remote_shutdown_ssh_invalid_private_key, deviceName)
+            is SshRequestFailure.CommandFailed ->
+                getString(R.string.remote_shutdown_ssh_command_failed, deviceName)
+            is SshRequestFailure.Timeout ->
+                getString(R.string.remote_shutdown_ssh_timeout, deviceName)
+            is SshRequestFailure.Network ->
+                getString(R.string.remote_shutdown_ssh_network_error, deviceName)
+            is SshRequestFailure.Unknown ->
                 getString(R.string.remote_shutdown_error, deviceName)
         }
 }

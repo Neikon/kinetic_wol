@@ -9,12 +9,18 @@ import dev.neikon.kineticwol.actions.DeviceShortcutPublisher
 import dev.neikon.kineticwol.domain.model.AgentShutdownConfig
 import dev.neikon.kineticwol.domain.model.RemoteShutdownConfig
 import dev.neikon.kineticwol.domain.model.RemoteShutdownMethod
+import dev.neikon.kineticwol.domain.model.SshShutdownConfig
 import dev.neikon.kineticwol.domain.model.WakeDevice
 import dev.neikon.kineticwol.domain.repository.DeviceRepository
 import dev.neikon.kineticwol.domain.shutdown.AgentPowerOffResult
 import dev.neikon.kineticwol.domain.shutdown.AgentRequestFailure
 import dev.neikon.kineticwol.domain.shutdown.AgentStatusResult
 import dev.neikon.kineticwol.domain.shutdown.AgentShutdownSender
+import dev.neikon.kineticwol.domain.shutdown.SshPowerOffResult
+import dev.neikon.kineticwol.domain.shutdown.SshKeyMaterialGenerator
+import dev.neikon.kineticwol.domain.shutdown.SshRequestFailure
+import dev.neikon.kineticwol.domain.shutdown.SshShutdownSender
+import dev.neikon.kineticwol.domain.shutdown.SshStatusResult
 import dev.neikon.kineticwol.domain.wol.WakeOnLanSender
 import dev.neikon.kineticwol.util.normalizeDeviceName
 import java.time.LocalTime
@@ -33,6 +39,8 @@ class HomeViewModel(
     private val repository: DeviceRepository,
     private val wakeOnLanSender: WakeOnLanSender,
     private val agentShutdownSender: AgentShutdownSender,
+    private val sshShutdownSender: SshShutdownSender,
+    private val sshKeyMaterialGenerator: SshKeyMaterialGenerator,
     private val deviceShortcutPublisher: DeviceShortcutPublisher,
     private val homeScreenPreferences: HomeScreenPreferences,
 ) : ViewModel() {
@@ -77,6 +85,14 @@ class HomeViewModel(
                     shutdownMethod = device.remoteShutdown.method,
                     agentBaseUrl = device.remoteShutdown.agent?.baseUrl.orEmpty(),
                     agentAuthToken = device.remoteShutdown.agent?.authToken.orEmpty(),
+                    sshHost = device.remoteShutdown.ssh?.host.orEmpty(),
+                    sshPort = device.remoteShutdown.ssh?.port?.toString().orEmpty().ifBlank { "22" },
+                    sshUsername = device.remoteShutdown.ssh?.username.orEmpty(),
+                    sshPrivateKey = device.remoteShutdown.ssh?.privateKey.orEmpty(),
+                    sshPublicKey = device.remoteShutdown.ssh?.publicKey.orEmpty(),
+                    sshKeyPassphrase = device.remoteShutdown.ssh?.keyPassphrase.orEmpty(),
+                    sshHostKeyFingerprint = device.remoteShutdown.ssh?.hostKeyFingerprint.orEmpty(),
+                    sshCommand = device.remoteShutdown.ssh?.command ?: SshShutdownConfig.DEFAULT_COMMAND,
                 ),
                 validationErrors = emptyMap(),
             )
@@ -123,10 +139,25 @@ class HomeViewModel(
                     enabled = draft.shutdownEnabled,
                     method = draft.shutdownMethod,
                     agent =
-                        if (draft.shutdownEnabled) {
+                        if (draft.shutdownEnabled && draft.shutdownMethod == RemoteShutdownMethod.AGENT) {
                             AgentShutdownConfig(
                                 baseUrl = draft.agentBaseUrl.trim(),
                                 authToken = draft.agentAuthToken.trim(),
+                            )
+                        } else {
+                            null
+                        },
+                    ssh =
+                        if (draft.shutdownEnabled && draft.shutdownMethod == RemoteShutdownMethod.SSH) {
+                            SshShutdownConfig(
+                                host = draft.sshHost.trim(),
+                                port = draft.sshPort.toInt(),
+                                username = draft.sshUsername.trim(),
+                                privateKey = draft.sshPrivateKey,
+                                publicKey = draft.sshPublicKey,
+                                hostKeyFingerprint = draft.sshHostKeyFingerprint.trim(),
+                                keyPassphrase = draft.sshKeyPassphrase.trim().takeIf { it.isNotEmpty() },
+                                command = draft.sshCommand.trim().ifBlank { SshShutdownConfig.DEFAULT_COMMAND },
                             )
                         } else {
                             null
@@ -172,33 +203,43 @@ class HomeViewModel(
 
     fun shutdownDevice(device: WakeDevice) {
         viewModelScope.launch {
-            val result =
-                when (device.remoteShutdown.method) {
-                    RemoteShutdownMethod.AGENT -> agentShutdownSender.send(device)
-                    RemoteShutdownMethod.SSH ->
-                        AgentPowerOffResult.Failure(
-                            AgentRequestFailure.Unknown("SSH shutdown is not implemented yet."),
-                        )
+            when (device.remoteShutdown.method) {
+                RemoteShutdownMethod.AGENT -> {
+                    when (val result = agentShutdownSender.send(device)) {
+                        is AgentPowerOffResult.Success -> {
+                            log(UiMessage(R.string.remote_shutdown_success, listOf(device.name)))
+                            _messages.emit(UiMessage(R.string.remote_shutdown_success, listOf(device.name)))
+                        }
+
+                        is AgentPowerOffResult.Failure -> {
+                            val message = powerOffFailureMessage(device.name, result.error)
+                            log(message)
+                            _messages.emit(message)
+                        }
+                    }
                 }
 
-            when (result) {
-                is AgentPowerOffResult.Success -> {
-                    log(UiMessage(R.string.remote_shutdown_success, listOf(device.name)))
-                    _messages.emit(UiMessage(R.string.remote_shutdown_success, listOf(device.name)))
-                }
+                RemoteShutdownMethod.SSH -> {
+                    when (val result = sshShutdownSender.send(device)) {
+                        is SshPowerOffResult.Success -> {
+                            log(UiMessage(R.string.remote_shutdown_success, listOf(device.name)))
+                            _messages.emit(UiMessage(R.string.remote_shutdown_success, listOf(device.name)))
+                        }
 
-                is AgentPowerOffResult.Failure -> {
-                    val message = powerOffFailureMessage(device.name, result.error)
-                    log(message)
-                    _messages.emit(message)
+                        is SshPowerOffResult.Failure -> {
+                            val message = sshPowerOffFailureMessage(device.name, result.error)
+                            log(message)
+                            _messages.emit(message)
+                        }
+                    }
                 }
             }
         }
     }
 
-    fun testAgentConnection() {
+    fun testRemoteShutdownConnection() {
         val draft = uiState.value.editor ?: return
-        val validationErrors = validateAgentConnectionDraft(draft)
+        val validationErrors = validateShutdownConnectionDraft(draft)
 
         if (validationErrors.isNotEmpty()) {
             _uiState.update {
@@ -209,36 +250,83 @@ class HomeViewModel(
             return
         }
 
-        val config =
-            AgentShutdownConfig(
-                baseUrl = draft.agentBaseUrl.trim(),
-                authToken = draft.agentAuthToken.trim(),
-            )
-
         viewModelScope.launch {
-            _uiState.update { state -> state.copy(isTestingAgentConnection = true) }
-            val result = agentShutdownSender.checkStatus(config)
-            _uiState.update { state -> state.copy(isTestingAgentConnection = false) }
-
+            _uiState.update { state -> state.copy(isTestingShutdownConnection = true) }
             val message =
-                when (result) {
-                    is AgentStatusResult.Success -> {
-                        if (result.data.canPowerOff.equals("yes", ignoreCase = true)) {
-                            UiMessage(
-                                R.string.agent_status_ready,
-                                listOf(result.data.message.ifBlank { result.data.canPowerOff }),
+                when (draft.shutdownMethod) {
+                    RemoteShutdownMethod.AGENT -> {
+                        val result =
+                            agentShutdownSender.checkStatus(
+                                AgentShutdownConfig(
+                                    baseUrl = draft.agentBaseUrl.trim(),
+                                    authToken = draft.agentAuthToken.trim(),
+                                ),
                             )
-                        } else {
-                            UiMessage(
-                                R.string.agent_status_not_ready,
-                                listOf(result.data.message.ifBlank { result.data.canPowerOff }),
-                            )
+
+                        when (result) {
+                            is AgentStatusResult.Success -> {
+                                if (result.data.canPowerOff.equals("yes", ignoreCase = true)) {
+                                    UiMessage(
+                                        R.string.agent_status_ready,
+                                        listOf(result.data.message.ifBlank { result.data.canPowerOff }),
+                                    )
+                                } else {
+                                    UiMessage(
+                                        R.string.agent_status_not_ready,
+                                        listOf(result.data.message.ifBlank { result.data.canPowerOff }),
+                                    )
+                                }
+                            }
+
+                            is AgentStatusResult.Failure -> statusFailureMessage(result.error)
                         }
                     }
 
-                    is AgentStatusResult.Failure -> statusFailureMessage(result.error)
+                    RemoteShutdownMethod.SSH -> {
+                        val result =
+                            sshShutdownSender.checkStatus(
+                                SshShutdownConfig(
+                                    host = draft.sshHost.trim(),
+                                    port = draft.sshPort.toInt(),
+                                    username = draft.sshUsername.trim(),
+                                    privateKey = draft.sshPrivateKey,
+                                    publicKey = draft.sshPublicKey,
+                                    hostKeyFingerprint = draft.sshHostKeyFingerprint.trim(),
+                                    keyPassphrase = draft.sshKeyPassphrase.trim().takeIf { it.isNotEmpty() },
+                                    command = draft.sshCommand.trim().ifBlank { SshShutdownConfig.DEFAULT_COMMAND },
+                                ),
+                            )
+
+                        when (result) {
+                            is SshStatusResult.Success -> {
+                                if (draft.sshHostKeyFingerprint.isBlank()) {
+                                    _uiState.update { state ->
+                                        state.copy(
+                                            editor = state.editor?.copy(
+                                                sshHostKeyFingerprint = result.data.hostKeyFingerprint,
+                                            ),
+                                            validationErrors =
+                                                state.validationErrors - "sshHostKeyFingerprint",
+                                        )
+                                    }
+                                    UiMessage(
+                                        R.string.ssh_status_ready_with_fingerprint,
+                                        listOf(result.data.hostKeyFingerprint),
+                                    )
+                                } else {
+                                    UiMessage(
+                                        R.string.ssh_status_ready,
+                                        listOf(result.data.message),
+                                    )
+                                }
+                            }
+
+                            is SshStatusResult.Failure -> sshStatusFailureMessage(result.error)
+                        }
+                    }
                 }
 
+            _uiState.update { state -> state.copy(isTestingShutdownConnection = false) }
             _messages.emit(message)
         }
     }
@@ -246,6 +334,25 @@ class HomeViewModel(
     fun dismissHeroCard() {
         homeScreenPreferences.setHeroCardDismissed(true)
         _uiState.update { state -> state.copy(isHeroCardVisible = false) }
+    }
+
+    fun generateSshKeyPair() {
+        val draft = uiState.value.editor ?: return
+
+        viewModelScope.launch {
+            val generated = sshKeyMaterialGenerator.generate()
+            _uiState.update { state ->
+                state.copy(
+                    editor = state.editor?.copy(
+                        sshPrivateKey = generated.privateKeyPem,
+                        sshPublicKey = generated.publicKeyAuthorized,
+                        sshKeyPassphrase = "",
+                    ),
+                    validationErrors = state.validationErrors - setOf("sshPrivateKey"),
+                )
+            }
+            _messages.emit(UiMessage(R.string.ssh_keypair_generated))
+        }
     }
 
     private fun validateDraft(draft: DeviceDraft): Map<String, Int> {
@@ -276,25 +383,68 @@ class HomeViewModel(
                 errors["macAddress"] = R.string.validation_mac
             }
 
-        if (draft.shutdownEnabled && draft.shutdownMethod == RemoteShutdownMethod.AGENT) {
-            if (draft.agentBaseUrl.isBlank()) {
-                errors["agentBaseUrl"] = R.string.validation_agent_base_url
-            }
-            if (draft.agentAuthToken.isBlank()) {
-                errors["agentAuthToken"] = R.string.validation_agent_auth_token
+        if (draft.shutdownEnabled) {
+            when (draft.shutdownMethod) {
+                RemoteShutdownMethod.AGENT -> {
+                    if (draft.agentBaseUrl.isBlank()) {
+                        errors["agentBaseUrl"] = R.string.validation_agent_base_url
+                    }
+                    if (draft.agentAuthToken.isBlank()) {
+                        errors["agentAuthToken"] = R.string.validation_agent_auth_token
+                    }
+                }
+
+                RemoteShutdownMethod.SSH -> {
+                    if (draft.sshHost.isBlank()) {
+                        errors["sshHost"] = R.string.validation_ssh_host
+                    }
+                    val sshPortValue = draft.sshPort.toIntOrNull()
+                    if (sshPortValue == null || sshPortValue !in 1..65535) {
+                        errors["sshPort"] = R.string.validation_ssh_port
+                    }
+                    if (draft.sshUsername.isBlank()) {
+                        errors["sshUsername"] = R.string.validation_ssh_username
+                    }
+                    if (draft.sshPrivateKey.isBlank()) {
+                        errors["sshPrivateKey"] = R.string.validation_ssh_private_key
+                    }
+                    if (draft.sshHostKeyFingerprint.isBlank()) {
+                        errors["sshHostKeyFingerprint"] = R.string.validation_ssh_host_key_fingerprint
+                    }
+                }
             }
         }
 
         return errors
     }
 
-    private fun validateAgentConnectionDraft(draft: DeviceDraft): Map<String, Int> {
+    private fun validateShutdownConnectionDraft(draft: DeviceDraft): Map<String, Int> {
         val errors = mutableMapOf<String, Int>()
-        if (draft.agentBaseUrl.isBlank()) {
-            errors["agentBaseUrl"] = R.string.validation_agent_base_url
-        }
-        if (draft.agentAuthToken.isBlank()) {
-            errors["agentAuthToken"] = R.string.validation_agent_auth_token
+        when (draft.shutdownMethod) {
+            RemoteShutdownMethod.AGENT -> {
+                if (draft.agentBaseUrl.isBlank()) {
+                    errors["agentBaseUrl"] = R.string.validation_agent_base_url
+                }
+                if (draft.agentAuthToken.isBlank()) {
+                    errors["agentAuthToken"] = R.string.validation_agent_auth_token
+                }
+            }
+
+            RemoteShutdownMethod.SSH -> {
+                if (draft.sshHost.isBlank()) {
+                    errors["sshHost"] = R.string.validation_ssh_host
+                }
+                val sshPortValue = draft.sshPort.toIntOrNull()
+                if (sshPortValue == null || sshPortValue !in 1..65535) {
+                    errors["sshPort"] = R.string.validation_ssh_port
+                }
+                if (draft.sshUsername.isBlank()) {
+                    errors["sshUsername"] = R.string.validation_ssh_username
+                }
+                if (draft.sshPrivateKey.isBlank()) {
+                    errors["sshPrivateKey"] = R.string.validation_ssh_private_key
+                }
+            }
         }
         return errors
     }
@@ -324,10 +474,28 @@ class HomeViewModel(
             changed += "shutdownEnabled"
             changed += "agentBaseUrl"
             changed += "agentAuthToken"
+            changed += "sshHost"
+            changed += "sshPort"
+            changed += "sshUsername"
+            changed += "sshPrivateKey"
+            changed += "sshPublicKey"
+            changed += "sshKeyPassphrase"
+            changed += "sshHostKeyFingerprint"
+            changed += "sshCommand"
         }
         if (previous.shutdownMethod != current.shutdownMethod) changed += "shutdownMethod"
         if (previous.agentBaseUrl != current.agentBaseUrl) changed += "agentBaseUrl"
         if (previous.agentAuthToken != current.agentAuthToken) changed += "agentAuthToken"
+        if (previous.sshHost != current.sshHost) changed += "sshHost"
+        if (previous.sshPort != current.sshPort) changed += "sshPort"
+        if (previous.sshUsername != current.sshUsername) changed += "sshUsername"
+        if (previous.sshPrivateKey != current.sshPrivateKey) changed += "sshPrivateKey"
+        if (previous.sshPublicKey != current.sshPublicKey) changed += "sshPublicKey"
+        if (previous.sshKeyPassphrase != current.sshKeyPassphrase) changed += "sshKeyPassphrase"
+        if (previous.sshHostKeyFingerprint != current.sshHostKeyFingerprint) {
+            changed += "sshHostKeyFingerprint"
+        }
+        if (previous.sshCommand != current.sshCommand) changed += "sshCommand"
         return changed
     }
 
@@ -343,6 +511,8 @@ class HomeViewModel(
                         repository = appContainer.deviceRepository,
                         wakeOnLanSender = appContainer.wakeOnLanSender,
                         agentShutdownSender = appContainer.agentShutdownSender,
+                        sshShutdownSender = appContainer.sshShutdownSender,
+                        sshKeyMaterialGenerator = appContainer.sshKeyMaterialGenerator,
                         deviceShortcutPublisher = appContainer.deviceShortcutPublisher,
                         homeScreenPreferences = appContainer.homeScreenPreferences,
                     ) as T
@@ -395,6 +565,57 @@ class HomeViewModel(
             is AgentRequestFailure.Network ->
                 UiMessage(R.string.remote_shutdown_network_error, listOf(deviceName))
             is AgentRequestFailure.Unknown ->
+                UiMessage(R.string.remote_shutdown_error, listOf(deviceName))
+        }
+
+    private fun sshStatusFailureMessage(error: SshRequestFailure): UiMessage =
+        when (error) {
+            is SshRequestFailure.InvalidConfiguration ->
+                UiMessage(R.string.ssh_status_invalid_configuration)
+            is SshRequestFailure.HostUnreachable ->
+                UiMessage(R.string.ssh_status_host_unreachable)
+            is SshRequestFailure.ConnectionRefused ->
+                UiMessage(R.string.ssh_status_connection_refused)
+            is SshRequestFailure.AuthenticationFailed ->
+                UiMessage(R.string.ssh_status_auth_failed)
+            is SshRequestFailure.HostKeyMismatch ->
+                UiMessage(R.string.ssh_status_host_key_mismatch)
+            is SshRequestFailure.InvalidPrivateKey ->
+                UiMessage(R.string.ssh_status_invalid_private_key)
+            is SshRequestFailure.CommandFailed ->
+                UiMessage(R.string.ssh_status_command_failed)
+            is SshRequestFailure.Timeout ->
+                UiMessage(R.string.ssh_status_timeout)
+            is SshRequestFailure.Network ->
+                UiMessage(R.string.ssh_status_network_error)
+            is SshRequestFailure.Unknown ->
+                UiMessage(R.string.ssh_status_unexpected_error)
+        }
+
+    private fun sshPowerOffFailureMessage(
+        deviceName: String,
+        error: SshRequestFailure,
+    ): UiMessage =
+        when (error) {
+            is SshRequestFailure.InvalidConfiguration ->
+                UiMessage(R.string.remote_shutdown_ssh_invalid_configuration, listOf(deviceName))
+            is SshRequestFailure.HostUnreachable ->
+                UiMessage(R.string.remote_shutdown_ssh_host_unreachable, listOf(deviceName))
+            is SshRequestFailure.ConnectionRefused ->
+                UiMessage(R.string.remote_shutdown_ssh_connection_refused, listOf(deviceName))
+            is SshRequestFailure.AuthenticationFailed ->
+                UiMessage(R.string.remote_shutdown_ssh_auth_failed, listOf(deviceName))
+            is SshRequestFailure.HostKeyMismatch ->
+                UiMessage(R.string.remote_shutdown_ssh_host_key_mismatch, listOf(deviceName))
+            is SshRequestFailure.InvalidPrivateKey ->
+                UiMessage(R.string.remote_shutdown_ssh_invalid_private_key, listOf(deviceName))
+            is SshRequestFailure.CommandFailed ->
+                UiMessage(R.string.remote_shutdown_ssh_command_failed, listOf(deviceName))
+            is SshRequestFailure.Timeout ->
+                UiMessage(R.string.remote_shutdown_ssh_timeout, listOf(deviceName))
+            is SshRequestFailure.Network ->
+                UiMessage(R.string.remote_shutdown_ssh_network_error, listOf(deviceName))
+            is SshRequestFailure.Unknown ->
                 UiMessage(R.string.remote_shutdown_error, listOf(deviceName))
         }
 }
