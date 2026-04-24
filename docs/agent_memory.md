@@ -99,7 +99,7 @@
 - La build `assembleDebug` compila correctamente en el entorno Android Studio del usuario tras la limpieza inicial
 - Android Studio actualizó la toolchain del proyecto a AGP `9.2.0` y Gradle `9.4.1`
 - El pipeline de GitHub Actions debe usar Gradle `9.4.1`; falló al quedarse fijado en `9.3.1` tras la actualización de AGP
-- El workflow de GitHub Actions opta explícitamente a ejecutar las acciones JavaScript sobre Node.js 24 con `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true`
+- El workflow se ajustó para usar actions que ya declaran Node.js 24 y para configurar Android SDK con `sdkmanager` directo, evitando `android-actions/setup-android@v3`
 - El repositorio sigue sin incluir `gradlew`, así que desde esta sesión no se puede ejecutar la build localmente aunque haya tests unitarios añadidos
 
 ## Preparacion de release

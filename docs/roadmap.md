@@ -56,6 +56,7 @@
 - [x] Validar end-to-end el apagado remoto por SSH en TrueNAS SCALE
 - [x] Ajustar el pipeline de GitHub Actions para usar Gradle `9.4.1` tras actualizar AGP a `9.2.0`
 - [x] Optar el workflow de GitHub Actions a Node.js 24 para eliminar el warning de deprecación de Node.js 20
+- [x] Actualizar las actions del pipeline a variantes Node.js 24 y sustituir `android-actions/setup-android` por `sdkmanager` directo
 
 ## Checklist en curso
 
