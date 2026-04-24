@@ -51,10 +51,10 @@
 - [x] Añadir pipeline de GitHub Actions para compilar APK y publicar una GitHub Release en cada push a `main`
 - [x] Implementar apagado remoto por SSH con clave privada, fingerprint y comando configurable
 - [x] Añadir generación de claves SSH en la app y captura automática del fingerprint del host en la primera prueba
+- [x] Validar end-to-end la integración con el agente Linux HTTP del otro repositorio
 
 ## Checklist en curso
 
-- [ ] Validar end-to-end la integración con el agente Linux del otro repositorio
 - [ ] Validar end-to-end el apagado remoto por SSH en un host Linux real con sudoers preparado
 - [ ] Revisar y endurecer App Actions sobre la base ya validada
 - [ ] Reducir warnings y complejidad de Gradle sin perder compatibilidad de build

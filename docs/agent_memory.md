@@ -88,6 +88,7 @@
   - quick tile y picker actualizados para apagar también por SSH
 - La app ya define un icono adaptive propio con foreground, background y variante monochrome para themed icons
 - Se añadió un workflow de GitHub Actions para compilar `:app:assembleDebug`, adjuntar el APK como artifact y publicar una GitHub Release en cada push a `main`
+- El usuario confirmó que la integración end-to-end con el agente Linux HTTP del otro repositorio funciona correctamente
 
 ## Notas de build actuales
 
