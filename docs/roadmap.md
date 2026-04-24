@@ -55,6 +55,7 @@
 - [x] Validar end-to-end el apagado remoto por SSH en un PC Linux real con sudoers preparado
 - [x] Validar end-to-end el apagado remoto por SSH en TrueNAS SCALE
 - [x] Ajustar el pipeline de GitHub Actions para usar Gradle `9.4.1` tras actualizar AGP a `9.2.0`
+- [x] Optar el workflow de GitHub Actions a Node.js 24 para eliminar el warning de deprecación de Node.js 20
 
 ## Checklist en curso
 
