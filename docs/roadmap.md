@@ -54,6 +54,7 @@
 - [x] Validar end-to-end la integración con el agente Linux HTTP del otro repositorio
 - [x] Validar end-to-end el apagado remoto por SSH en un PC Linux real con sudoers preparado
 - [x] Validar end-to-end el apagado remoto por SSH en TrueNAS SCALE
+- [x] Ajustar el pipeline de GitHub Actions para usar Gradle `9.4.1` tras actualizar AGP a `9.2.0`
 
 ## Checklist en curso
 

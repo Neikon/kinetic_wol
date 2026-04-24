@@ -98,6 +98,7 @@
 - Los flags heredados de compatibilidad añadidos por Android Studio se han eliminado para reducir warnings y deuda técnica
 - La build `assembleDebug` compila correctamente en el entorno Android Studio del usuario tras la limpieza inicial
 - Android Studio actualizó la toolchain del proyecto a AGP `9.2.0` y Gradle `9.4.1`
+- El pipeline de GitHub Actions debe usar Gradle `9.4.1`; falló al quedarse fijado en `9.3.1` tras la actualización de AGP
 - El repositorio sigue sin incluir `gradlew`, así que desde esta sesión no se puede ejecutar la build localmente aunque haya tests unitarios añadidos
 
 ## Preparacion de release
