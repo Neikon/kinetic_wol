@@ -201,6 +201,10 @@ Guía detallada para Linux:
 
 - [Configurar apagado remoto por SSH en Linux](docs/ssh_linux_shutdown.md)
 
+Guía detallada para TrueNAS SCALE desde la Web UI:
+
+- [Configurar apagado remoto por SSH en TrueNAS SCALE](docs/truenas_scale_ssh_shutdown.md)
+
 ## App Actions y Gemini
 
 Estado: pendiente de cerrar y validar como experiencia real de usuario.

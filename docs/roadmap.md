@@ -62,6 +62,7 @@
 - [x] Actualizar el README para reflejar apagado remoto, estado pendiente de voz y enlace rápido a releases
 - [x] Añadir al README el enlace al agente Linux `Neikon/kinetic_sol` y aclarar las dos vías de apagado remoto
 - [x] Añadir guía detallada para configurar apagado remoto por SSH en equipos Linux
+- [x] Añadir guía detallada para configurar apagado remoto por SSH en TrueNAS SCALE desde la Web UI
 
 ## Checklist en curso
 
