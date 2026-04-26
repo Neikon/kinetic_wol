@@ -91,6 +91,7 @@
 - El usuario confirmó que la integración end-to-end con el agente Linux HTTP del otro repositorio funciona correctamente
 - El usuario confirmó que el apagado remoto por SSH funciona end-to-end en un PC Linux con sudoers preparado
 - El usuario confirmó que el apagado remoto por SSH funciona end-to-end en TrueNAS SCALE
+- El README se actualizó para presentar Kinetic WOL como app de despertar y apagar dispositivos, enlazar GitHub Releases y dejar claro que el control por voz todavía está pendiente
 
 ## Notas de build actuales
 

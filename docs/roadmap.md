@@ -59,6 +59,7 @@
 - [x] Actualizar las actions del pipeline a variantes Node.js 24 y sustituir `android-actions/setup-android` por `sdkmanager` directo
 - [x] Confirmar que el pipeline vuelve a compilar correctamente y sin warnings de Node.js 20
 - [x] Evitar que el pipeline de build/release se ejecute en pushes que solo cambian documentación Markdown
+- [x] Actualizar el README para reflejar apagado remoto, estado pendiente de voz y enlace rápido a releases
 
 ## Checklist en curso
 

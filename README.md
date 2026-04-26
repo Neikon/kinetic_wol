@@ -1,6 +1,12 @@
 # Kinetic WOL
 
-Kinetic WOL es una app Android nativa para guardar equipos de red y enviarles paquetes Wake-on-LAN desde el teléfono. El proyecto también prepara una vía de invocación por voz basada en App Actions, con foco en compatibilidad práctica con Gemini dentro de la infraestructura oficial actual de Android.
+Kinetic WOL es una app Android nativa para guardar equipos de red, despertarlos con Wake-on-LAN y apagarlos de forma remota cuando el dispositivo tiene una ruta de apagado configurada.
+
+La descarga rápida del APK está en las releases del repositorio:
+
+- [GitHub Releases](https://github.com/Neikon/kinetic_wol/releases)
+
+El control por voz con Assistant/Gemini todavía está pendiente. El proyecto incluye base técnica para App Actions y fulfillment headless, pero la invocación real desde voz aún no está cerrada ni validada como funcional para usuarios finales.
 
 ## Estado actual
 
@@ -8,16 +14,28 @@ Kinetic WOL es una app Android nativa para guardar equipos de red y enviarles pa
 - UI principal en Jetpack Compose
 - Persistencia local real con Room
 - Envío WOL manual funcional
+- Apagado remoto manual funcional por agente Linux HTTP
+- Apagado remoto manual funcional por SSH con clave privada, fingerprint de host y comando configurable
+- Quick tile de Android con selector para despertar y apagar dispositivos compatibles
 - Fulfillment headless funcional mediante `WakeDeviceActivity`
 - Shortcuts dinámicos publicados para equipos guardados
 - Recursos bilingües en español e inglés
+- Pipeline de GitHub Actions que compila APK debug y publica una prerelease en cada push relevante a `main`
 
 Validaciones ya hechas sobre la app:
 
 - creación, edición y borrado de dispositivos
 - envío de magic packets contra un listener UDP local
+- apagado remoto contra el agente Linux HTTP
+- apagado remoto por SSH en un PC Linux con `sudoers` preparado
+- apagado remoto por SSH en TrueNAS SCALE
 - invocación headless por `adb` resolviendo dispositivos por nombre
 - aparición de shortcuts dinámicos al mantener pulsado el icono de la app
+
+Pendiente importante:
+
+- el control por voz real con Assistant/Gemini todavía está por hacer
+- falta generar y validar una `internal testing release` para cerrar el flujo real de App Actions
 
 ## Stack técnico
 
@@ -25,6 +43,7 @@ Validaciones ya hechas sobre la app:
 - Jetpack Compose
 - Material 3
 - Room
+- sshj
 - Android SDK 36
 - `minSdk = 36`
 - Java 17
@@ -35,7 +54,7 @@ Validaciones ya hechas sobre la app:
 app/src/main/java/dev/neikon/kineticwol/
 ├── actions/           # fulfillment headless y shortcuts dinámicos
 ├── data/              # Room y repositorio
-├── domain/            # modelo y lógica WOL
+├── domain/            # modelo y lógica WOL/apagado remoto
 ├── ui/                # Compose, estado y tema
 └── util/              # utilidades compartidas
 ```
@@ -46,7 +65,11 @@ Piezas clave:
 - [KineticWolApp.kt](app/src/main/java/dev/neikon/kineticwol/ui/KineticWolApp.kt): dashboard, formulario y navegación principal
 - [HomeViewModel.kt](app/src/main/java/dev/neikon/kineticwol/ui/home/HomeViewModel.kt): estado, validación y acciones de la pantalla
 - [WakeOnLanSender.kt](app/src/main/java/dev/neikon/kineticwol/domain/wol/WakeOnLanSender.kt): normalización MAC y envío del magic packet
+- [AgentShutdownSender.kt](app/src/main/java/dev/neikon/kineticwol/domain/shutdown/AgentShutdownSender.kt): apagado remoto por agente Linux HTTP
+- [SshShutdownSender.kt](app/src/main/java/dev/neikon/kineticwol/domain/shutdown/SshShutdownSender.kt): apagado remoto por SSH
+- [SshKeyMaterialGenerator.kt](app/src/main/java/dev/neikon/kineticwol/domain/shutdown/SshKeyMaterialGenerator.kt): generación de claves SSH dentro de la app
 - [WakeDeviceActivity.kt](app/src/main/java/dev/neikon/kineticwol/actions/WakeDeviceActivity.kt): ejecución headless por intent
+- [WakeQuickTileService.kt](app/src/main/java/dev/neikon/kineticwol/actions/WakeQuickTileService.kt): tile rápida de Android
 - [DeviceShortcutPublisher.kt](app/src/main/java/dev/neikon/kineticwol/actions/DeviceShortcutPublisher.kt): shortcuts dinámicos por dispositivo
 - [shortcuts.xml](app/src/main/res/xml/shortcuts.xml): capability y query patterns de App Actions
 
@@ -62,6 +85,16 @@ Notas:
 
 - el proyecto usa `minSdk 36`, así que solo apunta a Android 16+
 - en este repo no se está usando `gradlew`; la compilación se ha validado desde Android Studio
+
+## Descargar la app
+
+El workflow de GitHub Actions publica una prerelease por cada push relevante a `main`.
+
+Para descargar el APK:
+
+1. Abre [GitHub Releases](https://github.com/Neikon/kinetic_wol/releases).
+2. Entra en la release más reciente `main-...`.
+3. Descarga el archivo `kinetic-wol-main-....apk`.
 
 ## Cómo ejecutar la app
 
@@ -103,16 +136,70 @@ adb -s emulator-5554 shell am start -W \
 
 Eso debería resolver el dispositivo guardado por nombre y enviar el magic packet.
 
+## Cómo configurar apagado remoto
+
+Kinetic WOL permite apagar un dispositivo guardado si se activa la sección de apagado remoto en el formulario del dispositivo.
+
+Métodos soportados:
+
+- `Agente`: agente Linux HTTP autenticado por Bearer token
+- `SSH`: conexión SSH por clave privada, fingerprint de host y comando remoto configurable
+
+### Agente Linux HTTP
+
+La app espera este contrato:
+
+- `GET /api/v1/status`
+- `POST /api/v1/poweroff`
+- `Authorization: Bearer <token>`
+
+En el editor del dispositivo configura:
+
+- URL base del agente
+- token
+- método `Agente`
+
+Usa `Probar conexión` antes de guardar como ruta de apagado habitual.
+
+### SSH
+
+En el editor del dispositivo configura:
+
+- host SSH
+- puerto, normalmente `22`
+- usuario
+- clave privada
+- fingerprint del host
+- comando remoto
+
+La app puede generar un par de claves SSH. Copia la clave pública que muestra la app al `authorized_keys` del usuario remoto.
+
+El comando por defecto es:
+
+```bash
+sudo -n systemctl poweroff
+```
+
+Para TrueNAS SCALE se ha validado usando:
+
+```bash
+sudo -n /usr/sbin/shutdown -h now
+```
+
+El usuario remoto debe poder ejecutar el comando configurado sin prompt interactivo. En Linux normalmente hay que preparar una regla específica de `sudoers` o, en TrueNAS SCALE, añadir el ejecutable permitido en los comandos `sudo` sin contraseña del usuario.
+
 ## App Actions y Gemini
 
-El proyecto ya incluye la base necesaria:
+Estado: pendiente de cerrar y validar como experiencia real de usuario.
+
+El proyecto incluye base técnica:
 
 - `shortcuts.xml`
 - `meta-data` de shortcuts en el manifest
 - activity headless exportada
 - shortcuts dinámicos por equipo
 
-Pero hay límites importantes:
+Pero el control por voz todavía no está terminado:
 
 - no se ha encontrado un built-in intent oficial específico para Wake-on-LAN
 - la solución actual usa un `custom intent`
@@ -129,6 +216,8 @@ Tests unitarios incluidos:
 
 - [WakeOnLanSenderTest.kt](app/src/test/java/dev/neikon/kineticwol/domain/wol/WakeOnLanSenderTest.kt)
 - [DeviceNameNormalizerTest.kt](app/src/test/java/dev/neikon/kineticwol/util/DeviceNameNormalizerTest.kt)
+- [AgentShutdownSenderTest.kt](app/src/test/java/dev/neikon/kineticwol/domain/shutdown/AgentShutdownSenderTest.kt)
+- [SshShutdownSenderTest.kt](app/src/test/java/dev/neikon/kineticwol/domain/shutdown/SshShutdownSenderTest.kt)
 
 ## Documentación del proyecto
 
@@ -143,10 +232,14 @@ Tests unitarios incluidos:
 - [x] CRUD de dispositivos
 - [x] Persistencia con Room
 - [x] Envío WOL manual
+- [x] Apagado remoto por agente Linux HTTP
+- [x] Apagado remoto por SSH
 - [x] Fulfillment headless
 - [x] Shortcuts dinámicos
+- [x] Quick tile de Android
+- [x] Publicación automática de APK en GitHub Releases
 - [x] Limpieza inicial de build con AGP 9
 - [x] Mejoras de UX en formulario y navegación
-- [ ] Validar la invocación real desde Assistant/Gemini fuera de `adb`
-- [ ] Endurecer la estrategia final de App Actions
+- [ ] Implementar/cerrar la invocación real desde Assistant/Gemini fuera de `adb`
+- [ ] Endurecer la estrategia final de App Actions y validar una `internal testing release`
 - [ ] Decidir si se añade historial persistente de eventos

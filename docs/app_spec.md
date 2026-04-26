@@ -2,7 +2,7 @@
 
 ## 1. Propósito
 
-Kinetic WOL es una app Android que permite registrar dispositivos de red y enviarles paquetes Wake-on-LAN reales. Además, prepara un flujo de invocación por voz con App Actions para que el envío pueda ejecutarse sin interacción visual manual.
+Kinetic WOL es una app Android que permite registrar dispositivos de red, enviarles paquetes Wake-on-LAN reales y apagarlos de forma remota cuando el dispositivo tiene una ruta de apagado configurada. Además, prepara un flujo de invocación por voz con App Actions, todavía pendiente de cierre y validación real.
 
 ## 2. Público objetivo
 
@@ -30,7 +30,7 @@ Cada dispositivo tendrá como mínimo:
 Además, podrá incluir capacidades opcionales de control remoto:
 
 - apagado remoto por agente Linux HTTP autenticado por token
-- apagado remoto por SSH en una fase posterior
+- apagado remoto por SSH
 
 ### 3.2 Wake-on-LAN
 
