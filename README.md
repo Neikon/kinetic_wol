@@ -197,6 +197,10 @@ sudo -n /usr/sbin/shutdown -h now
 
 El usuario remoto debe poder ejecutar el comando configurado sin prompt interactivo. En Linux normalmente hay que preparar una regla específica de `sudoers` o, en TrueNAS SCALE, añadir el ejecutable permitido en los comandos `sudo` sin contraseña del usuario.
 
+Guía detallada para Linux:
+
+- [Configurar apagado remoto por SSH en Linux](docs/ssh_linux_shutdown.md)
+
 ## App Actions y Gemini
 
 Estado: pendiente de cerrar y validar como experiencia real de usuario.

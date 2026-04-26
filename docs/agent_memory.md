@@ -93,6 +93,7 @@
 - El usuario confirmó que el apagado remoto por SSH funciona end-to-end en TrueNAS SCALE
 - El README se actualizó para presentar Kinetic WOL como app de despertar y apagar dispositivos, enlazar GitHub Releases y dejar claro que el control por voz todavía está pendiente
 - El README enlaza el agente Linux HTTP compatible en `https://github.com/Neikon/kinetic_sol` y aclara que el apagado remoto puede ir por SSH o por agente
+- Se añadió `docs/ssh_linux_shutdown.md` como guía paso a paso para preparar apagado remoto por SSH en Linux y se enlazó desde el README
 
 ## Notas de build actuales
 

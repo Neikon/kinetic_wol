@@ -61,6 +61,7 @@
 - [x] Evitar que el pipeline de build/release se ejecute en pushes que solo cambian documentación Markdown
 - [x] Actualizar el README para reflejar apagado remoto, estado pendiente de voz y enlace rápido a releases
 - [x] Añadir al README el enlace al agente Linux `Neikon/kinetic_sol` y aclarar las dos vías de apagado remoto
+- [x] Añadir guía detallada para configurar apagado remoto por SSH en equipos Linux
 
 ## Checklist en curso
 
