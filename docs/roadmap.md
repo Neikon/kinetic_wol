@@ -60,6 +60,7 @@
 - [x] Confirmar que el pipeline vuelve a compilar correctamente y sin warnings de Node.js 20
 - [x] Evitar que el pipeline de build/release se ejecute en pushes que solo cambian documentación Markdown
 - [x] Actualizar el README para reflejar apagado remoto, estado pendiente de voz y enlace rápido a releases
+- [x] Añadir al README el enlace al agente Linux `Neikon/kinetic_sol` y aclarar las dos vías de apagado remoto
 
 ## Checklist en curso
 

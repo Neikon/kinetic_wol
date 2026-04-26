@@ -2,6 +2,11 @@
 
 Kinetic WOL es una app Android nativa para guardar equipos de red, despertarlos con Wake-on-LAN y apagarlos de forma remota cuando el dispositivo tiene una ruta de apagado configurada.
 
+El apagado remoto puede hacerse por dos vías:
+
+- SSH directo al equipo remoto
+- agente Linux HTTP, disponible en [Neikon/kinetic_sol](https://github.com/Neikon/kinetic_sol)
+
 La descarga rápida del APK está en las releases del repositorio:
 
 - [GitHub Releases](https://github.com/Neikon/kinetic_wol/releases)
@@ -146,6 +151,10 @@ Métodos soportados:
 - `SSH`: conexión SSH por clave privada, fingerprint de host y comando remoto configurable
 
 ### Agente Linux HTTP
+
+El agente Linux compatible con esta ruta está en:
+
+- [Neikon/kinetic_sol](https://github.com/Neikon/kinetic_sol)
 
 La app espera este contrato:
 
